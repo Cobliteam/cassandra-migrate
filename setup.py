@@ -19,4 +19,4 @@ setup(name='cassandra-migrate',
           'click'
       ],
       scripts=['bin/cassandra-migrate'],
-      keywords=['cassandra', 'schema', 'migration'])
+      keywords='cassandra schema migration')
