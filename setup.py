@@ -1,13 +1,16 @@
 from setuptools import setup
 
+VERSION = '0.1'
+
 setup(name='cassandra-migrate',
-      version='0.1',
+      packages=['cassandra_migrate'],
+      version=VERSION,
       description='Simple Cassandra database migration program',
-      url='http://github.com/Cobliteam/cassandra-migrate-py',
+      url='https://github.com/Cobliteam/cassandra-migrate',
+      download_url='https://github.com/Cobliteam/cassandra-migrate/archive/{}.tar.gz'.format(VERSION),
       author='Daniel Miranda',
       author_email='daniel@cobli.co',
       license='MIT',
-      packages=['cassandra_migrate'],
       install_requires=[
           'cassandra-driver',
           'future',
@@ -16,4 +19,4 @@ setup(name='cassandra-migrate',
           'click'
       ],
       scripts=['bin/cassandra-migrate'],
-      zip_safe=False)
+      keywords=['cassandra', 'schema', 'migration'])
