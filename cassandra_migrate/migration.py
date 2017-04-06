@@ -60,7 +60,7 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
         for pattern in patterns:
             paths.extend(glob.iglob(os.path.join(base_path, pattern)))
 
-        return map(cls.load, cls.sort_paths(paths))
+        return list(map(cls.load, cls.sort_paths(paths)))
 
     def __str__(self):
         return 'Migration("{}")'.format(self.name)

@@ -8,7 +8,7 @@ import re
 import logging
 import uuid
 from collections import namedtuple
-from itertools import izip_longest
+from future.moves.itertools import zip_longest
 
 from cassandra import ConsistencyLevel, DriverException
 from cassandra.cluster import Cluster
@@ -246,7 +246,7 @@ class Migrator(object):
         cur_versions = sorted(cur_versions, key=lambda v: v.version)
 
         last_version = None
-        version_pairs = izip_longest(cur_versions, migrations)
+        version_pairs = zip_longest(cur_versions, migrations)
 
         # Work through ordered pairs of (existing version, migration), so that
         # stored versions and expected migrations can be compared for any
@@ -284,10 +284,11 @@ class Migrator(object):
                 raise InconsistentState(migration, version)
 
         if not last_version:
-            pending_migrations = migrations[:]
-        elif last_version < len(migrations):
-            pending_migrations = migrations[last_version:]
+            pending_migrations = list(migrations)
         else:
+            pending_migrations = list(migrations)[last_version:]
+
+        if not pending_migrations:
             self.logger.info('Database is already up-to-date')
             return []
 
