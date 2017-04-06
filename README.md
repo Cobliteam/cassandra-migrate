@@ -8,11 +8,12 @@ Run`pip install cassandra-migrate`, or `python ./setup.py`
 
 ## Reasoning
 
-Unlike other available tools, this one is:
+Unlike other available tools, this one:
 - Written in Python for easy installation
+- Does not require `cqlsh`, just the Python driver
 - Supports baselining existing database to given versions
 - Supports partial advancement
-- Supports locking against multiple instances using Lightweight Transactions
+- Supports locking for concurrent instances using Lightweight Transactions
 - Verifies stored migrations against configured migrations
 - Stores content, checksum, date and state of every migration
 - Supports deploying with different keyspace configurations for different
@@ -135,6 +136,12 @@ Example:
 ```bash
 cassandra-migrate generate "My migration description"
 ```
+
+## TODO
+
+- Implement `status`
+- Ask for confirmation before applying dangerous commands
+- Support Python migrations (instead of just CQL)
 
 ## License (MIT)
 
