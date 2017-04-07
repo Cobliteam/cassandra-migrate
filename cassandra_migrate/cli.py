@@ -37,6 +37,8 @@ def open_file(filename):
 
 def main():
     logging.basicConfig(level=logging.INFO)
+    logging.getLogger("cassandra.policies").setLevel(logging.ERROR)
+
 
     parser = argparse.ArgumentParser(description='Simple Cassandra migration tool')
     parser.add_argument('-H', '--hosts', default='127.0.0.1',
