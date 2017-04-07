@@ -17,7 +17,7 @@ setup(name='cassandra-migrate',
           'future',
           'pyyaml',
           'arrow',
-          'click'
+          'tabulate'
       ],
       scripts=['bin/cassandra-migrate'],
       keywords='cassandra schema migration')

@@ -7,15 +7,19 @@ from builtins import str
 import re
 import logging
 import uuid
+import codecs
 from collections import namedtuple
 from future.moves.itertools import zip_longest
 
+import arrow
+from tabulate import tabulate
 from cassandra import ConsistencyLevel, DriverException
 from cassandra.cluster import Cluster
 
 from cassandra_migrate import (Migration, MigrationConfig, FailedMigration,
                                InconsistentState)
 from cassandra_migrate.cql import CqlSplitter
+
 
 CREATE_MIGRATIONS_TABLE = """
 CREATE TABLE {keyspace}.{table} (
@@ -186,13 +190,16 @@ class Migrator(object):
         self.logger.debug('Executing query: {}'.format(query))
         return self.session.execute(query, *args, **kwargs)
 
-    def _ensure_keyspace(self):
-        """Create the keyspace if it does not exist"""
-
+    def _keyspace_exists(self):
         # Manually start session so the cluster metadata is populated
         session = self.session
 
-        if self.config.keyspace in self.cluster.metadata.keyspaces:
+        return self.config.keyspace in self.cluster.metadata.keyspaces
+
+    def _ensure_keyspace(self):
+        """Create the keyspace if it does not exist"""
+
+        if self._keyspace_exists():
             return
 
         self.logger.info("Creating keyspace '{}'".format(self.config.keyspace))
@@ -204,10 +211,7 @@ class Migrator(object):
         self._execute(query)
         self.cluster.refresh_keyspace_metadata(self.config.keyspace)
 
-    def _ensure_table(self):
-        """Create the migration table if it does not exist"""
-
-        # Manually start session so the cluster metadata is populated
+    def _table_exists(self):
         session = self.session
 
         ks_metadata = self.cluster.metadata.keyspaces.get(self.config.keyspace,
@@ -218,8 +222,12 @@ class Migrator(object):
             raise ValueError("Keyspace '{}' does not exist, "
                              "stopping".format(self.config.keyspace))
 
-        table = self.config.migrations_table
-        if table in ks_metadata.tables:
+        return self.config.migrations_table in ks_metadata.tables
+
+    def _ensure_table(self):
+        """Create the migration table if it does not exist"""
+
+        if self._table_exists():
             return
 
         self.logger.info(
@@ -228,7 +236,8 @@ class Migrator(object):
                 table=self.config.migrations_table))
 
         self._execute(self._q(CREATE_MIGRATIONS_TABLE))
-        self.cluster.refresh_table_metadata(self.config.keyspace, table)
+        self.cluster.refresh_table_metadata(self.config.keyspace,
+                                            self.config.migrations_table)
 
     def _verify_migrations(self, migrations, ignore_failed=False,
                            ignore_concurrent=False):
@@ -303,9 +312,9 @@ class Migrator(object):
                 'Current version: {}, Latest version: {}'.format(
                 last_version, len(migrations)))
 
-        pending_migrations = enumerate(pending_migrations,
-                                       (last_version or 0) + 1)
-        return last_version, cur_versions, pending_migrations
+        pending_migrations = enumerate(
+            pending_migrations, (last_version or 0) + 1)
+        return last_version, cur_versions, list(pending_migrations)
 
     def _create_version(self, version, migration):
         """
@@ -455,7 +464,62 @@ class Migrator(object):
         opts.force = False
         self.migrate(opts)
 
-    def status(self, opts):
-        """Print the current migation status of the database"""
-        pass
+    @staticmethod
+    def _bytes_to_hex(bs):
+        return codecs.getencoder('hex')(bs)[0]
 
+    def status(self, opts):
+        self._check_cluster()
+
+        if not self._keyspace_exists():
+            print("Keyspace '{}' does not exist".format(self.config.keyspace))
+            return
+
+        if not self._table_exists():
+            print(
+                "Migration table '{table}' does not exist in "
+                "keyspace '{keyspace}'".format(
+                    keyspace=self.config.keyspace,
+                    table=self.config.migrations_table))
+            return
+
+        last_version, cur_versions, pending_migrations = \
+            self._verify_migrations(self.config.migrations,
+                                    ignore_failed=True,
+                                    ignore_concurrent=True)
+        latest_version = len(self.config.migrations)
+
+        print(tabulate((
+            ('Keyspace:', self.config.keyspace),
+            ('Migrations table:', self.config.migrations_table),
+            ('Current DB version:', last_version),
+            ('Latest DB version:', latest_version)),
+            tablefmt='plain'))
+
+        if cur_versions:
+            print('\n## Applied migrations\n')
+
+            data = []
+            for version in cur_versions:
+                checksum = self._bytes_to_hex(version.checksum)
+                date = arrow.get(version.applied_at).format()
+                data.append((
+                    str(version.version),
+                    version.name,
+                    version.state,
+                    date,
+                    checksum))
+            print(tabulate(data, headers=['#', 'Name', 'State',
+                                          'Date applied', 'Checksum']))
+
+        if pending_migrations:
+            print('\n## Pending migrations\n')
+
+            data = []
+            for version, migration in pending_migrations:
+                checksum = self._bytes_to_hex(migration.checksum)
+                data.append((
+                    str(version),
+                    migration.name,
+                    checksum))
+            print(tabulate(data, headers=['#', 'Name', 'Checksum']))
