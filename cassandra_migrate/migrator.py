@@ -50,6 +50,10 @@ FINALIZE_DB_VERSION = """
 UPDATE "{keyspace}"."{table}" SET state = %s WHERE id = %s IF state = %s
 """
 
+DELETE_DB_VERSION = """
+DELETE FROM "{keyspace}"."{table}" WHERE id = %s IF state = %s
+"""
+
 def cassandra_ddl_repr(data):
     """Generate a string representation of a map suitable for use in C* DDL"""
     if isinstance(data, str):
@@ -226,7 +230,8 @@ class Migrator(object):
         self._execute(self._q(CREATE_MIGRATIONS_TABLE))
         self.cluster.refresh_table_metadata(self.config.keyspace, table)
 
-    def _verify_migrations(self, migrations, ignore_failed=False):
+    def _verify_migrations(self, migrations, ignore_failed=False,
+                           ignore_concurrent=False):
         """Verify if the version history persisted in C* matches the migrations
 
         Migrations with corresponding DB versions must have the same content
@@ -275,6 +280,8 @@ class Migrator(object):
 
             # A migration is in progress.
             if version.state == Migration.State.IN_PROGRESS:
+                if ignore_concurrent:
+                    break
                 raise ConcurrentMigration(version.version, version.name)
 
             # A stored version's migrations differs from the one in the FS.
@@ -290,14 +297,15 @@ class Migrator(object):
 
         if not pending_migrations:
             self.logger.info('Database is already up-to-date')
-            return []
+        else:
+            self.logger.info(
+                'Pending migrations found. '
+                'Current version: {}, Latest version: {}'.format(
+                last_version, len(migrations)))
 
-        self.logger.info(
-            'Pending migrations found. '
-            'Current version: {}, Latest version: {}'.format(
-            last_version, len(migrations)))
-
-        return enumerate(pending_migrations, (last_version or 0) + 1)
+        pending_migrations = enumerate(pending_migrations,
+                                       (last_version or 0) + 1)
+        return last_version, cur_versions, pending_migrations
 
     def _create_version(self, version, migration):
         """
@@ -358,8 +366,8 @@ class Migrator(object):
             for statement in statements:
                 self.session.execute(statement)
         except Exception as e:
-            self.logger.exception('Failed to execute migration: {}', e)
-            raise FailedMigration(version)
+            self.logger.exception('Failed to execute migration')
+            raise FailedMigration(version, migration.name)
         else:
             new_state = (Migration.State.SUCCEEDED if not skip
                         else Migration.State.SKIPPED)
@@ -373,8 +381,31 @@ class Migrator(object):
         if not result or not result[0].applied:
             raise ConcurrentMigration(version, migration.name)
 
-    def _advance(self, migrations, target, skip=False):
+    def _cleanup_previous_versions(self, cur_versions):
+        if not cur_versions:
+            return
+
+        last_version = cur_versions[-1]
+        if last_version.state != Migration.State.FAILED:
+            return
+
+        self.logger.warn(
+            'Cleaning up previous failed migration '
+             '(version {}): {}'.format(last_version.version, last_version.name))
+
+        result = self._execute(
+            self._q(DELETE_DB_VERSION),
+            (last_version.id, Migration.State.FAILED))
+
+        if not result[0].applied:
+            raise ConcurrentMigration(last_version.version,
+                                      last_version.name)
+
+    def _advance(self, migrations, target, cur_versions, skip=False,
+                 force=False):
         """Apply all necessary migrations to reach a target version"""
+        if force:
+            self._cleanup_previous_versions(cur_versions)
 
         target_version = self._get_target_version(target)
         for version, migration in migrations:
@@ -391,7 +422,8 @@ class Migrator(object):
         self._check_cluster()
         self._ensure_table()
 
-        self._advance(self.config.migrations, opts.db_version, skip=True)
+        self._advance(self.config.migrations, opts.db_version, cur_versions,
+                      skip=True)
 
     def migrate(self, opts):
         """
@@ -403,9 +435,12 @@ class Migrator(object):
         self._ensure_keyspace()
         self._ensure_table()
 
-        migrations = self._verify_migrations(self.config.migrations,
-            ignore_failed=opts.force)
-        self._advance(migrations, opts.db_version)
+        last_version, cur_versions, pending_migrations = \
+            self._verify_migrations(self.config.migrations,
+                                    ignore_failed=opts.force)
+
+        self._advance(pending_migrations, opts.db_version, cur_versions,
+                      force=opts.force)
 
     def reset(self, opts):
         """Reset a database, by dropping the keyspace then migrating"""
