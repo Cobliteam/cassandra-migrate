@@ -2,7 +2,7 @@
 
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
-from builtins import open
+from builtins import open, bytes
 
 import re
 import os
@@ -43,7 +43,7 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
         with open(path, 'r', encoding='utf-8') as fp:
             content = fp.read()
 
-        checksum = hashlib.sha256(content.encode('utf-8')).digest()
+        checksum = bytes(hashlib.sha256(content.encode('utf-8')).digest())
         return cls(os.path.abspath(path), os.path.basename(path), content,
                    checksum)
 
