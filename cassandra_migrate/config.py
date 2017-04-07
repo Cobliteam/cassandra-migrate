@@ -2,7 +2,7 @@
 
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
-from builtins import str
+from builtins import str, open
 
 import os
 import yaml
@@ -66,7 +66,7 @@ class MigrationConfig(object):
     @classmethod
     def load(cls, path):
         """Load a migration config from a file, using it's dir. as base path"""
-        with open(path, 'rb') as f:
+        with open(path, 'r', encoding='utf-8') as f:
             config = yaml.load(f)
 
         return cls(config, os.path.dirname(path))
