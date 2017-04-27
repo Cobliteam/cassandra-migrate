@@ -15,7 +15,7 @@ import arrow
 from tabulate import tabulate
 from cassandra import ConsistencyLevel, DriverException
 from cassandra.cluster import Cluster
-
+from cassandra.auth import PlainTextAuthProvider
 from cassandra_migrate import (Migration, MigrationConfig, FailedMigration,
                                InconsistentState)
 from cassandra_migrate.cql import CqlSplitter
