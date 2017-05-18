@@ -6,19 +6,21 @@ Simple Cassandra schema migration tool.
 Installation
 ------------
 
-Run\ ``pip install cassandra-migrate``, or ``python ./setup.py``
+Run ``pip install cassandra-migrate``, or ``python ./setup.py``
 
 Reasoning
 ---------
 
-Unlike other available tools, this one: - Written in Python for easy
-installation - Does not require ``cqlsh``, just the Python driver -
-Supports baselining existing database to given versions - Supports
-partial advancement - Supports locking for concurrent instances using
-Lightweight Transactions - Verifies stored migrations against configured
-migrations - Stores content, checksum, date and state of every migration
-- Supports deploying with different keyspace configurations for
-different environments
+Unlike other available tools, this one:
+
+- Written in Python for easy installation
+- Does not require ``cqlsh``, just the Python driver
+- Supports baselining existing database to given versions
+- Supports partial advancement
+- Supports locking for concurrent instances using Lightweight Transactions
+- Verifies stored migrations against configured migrations
+- Stores content, checksum, date and state of every migration
+- Supports deploying with different keyspace configurations for different environments
 
 Configuration
 -------------
