@@ -121,7 +121,11 @@ class Migrator(object):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.cluster:
+        if self._session is not None:
+            self._session.shutdown()
+            self._session = None
+
+        if self.cluster is not None:
             self.cluster.shutdown()
             self.cluster = None
 
@@ -431,7 +435,11 @@ class Migrator(object):
         self._check_cluster()
         self._ensure_table()
 
-        self._advance(self.config.migrations, opts.db_version, cur_versions,
+        last_version, cur_versions, pending_migrations = \
+            self._verify_migrations(self.config.migrations,
+                                    ignore_failed=False)
+
+        self._advance(pending_migrations, opts.db_version, cur_versions,
                       skip=True)
 
     def migrate(self, opts):
