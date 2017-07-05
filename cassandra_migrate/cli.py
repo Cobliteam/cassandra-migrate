@@ -92,11 +92,12 @@ def main():
 
     if opts.action == 'generate':
         clean_desc = '_'.join(opts.description.split())
-        next_version = len(config.migrations) + 1
-        date = arrow.now().format()
+        now = arrow.now()
+        date = now.format()
+        prefix = now.format('YYYYMMDDHHmmss')
 
         new_path = os.path.join(config.migrations_path,
-            'v{:03d}_{}.cql'.format(next_version, clean_desc))
+            '{}_{}.cql'.format(prefix, clean_desc))
 
         with io.open(new_path, 'w', encoding='utf-8') as f:
             f.write(NEW_MIGRATION_TEXT.lstrip().format(
