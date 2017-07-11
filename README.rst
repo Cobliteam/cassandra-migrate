@@ -47,10 +47,10 @@ For example
 .. code:: yaml
 
     # Date-based migration names
-    new_migration_name: "v{date:YYYYMMDDHHmmss}_{description}"
+    new_migration_name: "v{date:YYYYMMDDHHmmss}_{desc}"
 
     # Default migration names
-    new_migration_name: "v{next_version:03d}_{description}"
+    new_migration_name: "v{next_version:03d}_{desc}"
 
     # Custom initial migration content
     new_migration_text: |
