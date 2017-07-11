@@ -376,6 +376,10 @@ class Migrator(object):
                 self.logger.info('Executing migration - {} CQL statements'.format(
                     len(statements)))
 
+            # Set default keyspace so migrations don't need to refer to it manually
+            # Fixes https://github.com/Cobliteam/cassandra-migrate/issues/5
+            self.session.execute('USE {};'.format(self.config.keyspace))
+
             for statement in statements:
                 self.session.execute(statement)
         except Exception as e:
