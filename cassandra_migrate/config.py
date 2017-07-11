@@ -9,6 +9,14 @@ import yaml
 
 from .migration import Migration
 
+
+DEFAULT_NEW_MIGRATION_TEXT = """
+/* Cassandra migration for keyspace {keyspace}.
+   Version {next_version} - {date}
+
+   {full_desc} */
+""".lstrip()
+
 def _assert_type(data, key, tpe, default=None):
     """Extract and verify if a key in a dictionary has a given type"""
     value = data.get(key, default)
@@ -16,6 +24,7 @@ def _assert_type(data, key, tpe, default=None):
         raise ValueError("Config error: {}: expected {}, found {}".format(
             key, tpe, type(value)))
     return value
+
 
 class MigrationConfig(object):
     """
@@ -61,7 +70,19 @@ class MigrationConfig(object):
         self.migrations = Migration.glob_all(self.migrations_path, '*.cql')
 
         self.migrations_table = _assert_type(data, 'migrations_table', str,
-                                            default='database_migrations')
+                                             default='database_migrations')
+
+        self.date_format = _assert_type(
+            data, 'date_format', str,
+            default='YYYYMMDDHHmmss')
+
+        self.new_migration_name = _assert_type(
+            data, 'new_migration_name', str,
+            default='v{next_version}_{description}')
+
+        self.new_migration_text = _assert_type(
+            data, 'new_migration_text', str,
+            default=DEFAULT_NEW_MIGRATION_TEXT)
 
     @classmethod
     def load(cls, path):

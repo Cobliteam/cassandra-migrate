@@ -38,10 +38,44 @@ Databases are configured through YAML files. For example:
     migrations_path: ./migrations
 
 Where the ``migrations`` folder (relative to the config file). contains
-``.cql`` files.
+``.cql`` files. The files are loaded in lexical order.
 
-The files are loaded in lexical order. The default convention is name
-them in the form: ``v001_my_migration.cql``.
+The default convention is to name them in the form: ``v001_my_migration.cql``.
+A custom naming scheme can be specified with the ``new_migration_name`` option.
+For example
+
+.. code:: yaml
+
+    # Date-based migration names
+    new_migration_name: "v{date:YYYYMMDDHHmmss}_{description}"
+
+    # Default migration names
+    new_migration_name: "v{next_version:03d}_{description}"
+
+    # Custom initial migration content
+    new_migration_text: |
+      /* Cassandra migration for keyspace {keyspace}.
+         Version {next_version} - {date}
+
+         {full_desc} */
+
+``new_migration_name`` is a new-style Python format string, which can use the
+following parameters:
+
+- ``next_version``: Number of the newly generated migration (as an ``int``).
+- ``desc``: filename-clean description of the migration, as specified
+  by the user.
+- ``full_desc``: unmodified description, possibly containing special characters.
+- ``date``: current date in UTC. Pay attention to the choice of formatting,
+  otherwise you might include spaces in the file name. The above example should
+  be a good starting point.
+- ``keyspace``: name of the configured keyspace.
+
+The format string should *not* contain the ``.cql`` extension, as it is added
+automatically.
+
+``new_migraton_text`` is handled with the same rules outline above, but defines
+the initial content of the migration file.
 
 Profiles
 --------
@@ -145,9 +179,13 @@ Example:
 generate
 ~~~~~~~~
 
-Generate a new empty migration file with an incremented version, with a
-file named using the basic convention (``vNNN_description.cql``) in the
-configured ``migrations_path``.
+Generate a new migration file with the appropriate name and a basic header
+template, in the configured ``migrations_path``.
+
+When running the command interactively, the file will be opened by the default
+editor. The newly-generated file name will be printed to stdout.
+
+See the configuration section for details on migration naming.
 
 Example:
 
@@ -158,7 +196,6 @@ Example:
 TODO
 ----
 
--  Implement ``status``
 -  Ask for confirmation before applying dangerous commands
 -  Support Python migrations (instead of just CQL)
 

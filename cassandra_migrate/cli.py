@@ -5,21 +5,11 @@ from __future__ import (absolute_import, division,
 
 import sys
 import os
-import io
 import logging
 import argparse
 import subprocess
 
-import arrow
-
-from . import Migrator, MigrationConfig, MigrationError
-
-NEW_MIGRATION_TEXT = """
-/* Cassandra migration for keyspace {keyspace}.
-   Version {version} - {date}
-   {description} */
-
-"""
+from . import Migrator, Migration, MigrationConfig, MigrationError
 
 def open_file(filename):
     if sys.platform == 'win32':
@@ -91,20 +81,7 @@ def main():
     config = MigrationConfig.load(opts.config_file)
 
     if opts.action == 'generate':
-        clean_desc = '_'.join(opts.description.split())
-        next_version = len(config.migrations) + 1
-        date = arrow.now().format()
-
-        new_path = os.path.join(config.migrations_path,
-            'v{:03d}_{}.cql'.format(next_version, clean_desc))
-
-        with io.open(new_path, 'w', encoding='utf-8') as f:
-            f.write(NEW_MIGRATION_TEXT.lstrip().format(
-                keyspace=config.keyspace,
-                version=next_version,
-                date=date,
-                description=clean_desc))
-
+        new_path = Migration.generate(config=config, description=opts.description)
         if sys.stdin.isatty():
             open_file(new_path)
 
