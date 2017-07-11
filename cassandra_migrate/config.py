@@ -72,13 +72,9 @@ class MigrationConfig(object):
         self.migrations_table = _assert_type(data, 'migrations_table', str,
                                              default='database_migrations')
 
-        self.date_format = _assert_type(
-            data, 'date_format', str,
-            default='YYYYMMDDHHmmss')
-
         self.new_migration_name = _assert_type(
             data, 'new_migration_name', str,
-            default='v{next_version}_{description}')
+            default='v{next_version}_{desc}')
 
         self.new_migration_text = _assert_type(
             data, 'new_migration_text', str,
