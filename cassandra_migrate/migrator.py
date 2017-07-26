@@ -83,7 +83,7 @@ def cassandra_ddl_repr(data):
 class Migrator(object):
     """Execute migration operations in a C* database based on configuration.
 
-    `opts` must contain at least the following attributes:
+    `config` must contain at least the following keys:
     - config_file: path to a YAML file containing the configuration
     - profiles: map of profile names to keyspace settings
     - user, password: authentication options. May be None to not use it.
