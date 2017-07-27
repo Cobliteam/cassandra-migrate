@@ -41,7 +41,7 @@ class InconsistentState(MigrationError):
 
 class UnknownMigration(MigrationError):
     """Database contains migrations that have not been specified"""
-    def __init__(self, version):
+    def __init__(self, version, name):
         self.version = version
         self.migration_name = name
 
