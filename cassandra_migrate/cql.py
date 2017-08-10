@@ -25,7 +25,6 @@ class CqlSplitter(object):
     SEMICOLON = 4
     OTHER = 5
     WHITESPACE = 6
-    EOF = 7
 
     @classmethod
     def scanner(cls):
@@ -34,13 +33,12 @@ class CqlSplitter(object):
                 return lambda sc, tk: cls.Token(tpe, tk)
 
             cls._scanner = re.Scanner([
-                (r"^(--|//).*?$",              h(cls.LINE_COMMENT)),
+                (r"(--|//).*?$",               h(cls.LINE_COMMENT)),
                 (r"\/\*.+?\*\/",               h(cls.BLOCK_COMMENT)),
                 (r'"(?:[^"\\]|\\.)*"',         h(cls.STRING)),
                 (r"'(?:[^'\\]|\\.)*'",         h(cls.STRING)),
                 (r"\$\$(?:[^\$\\]|\\.)*\$\$'", h(cls.STRING)),
                 (r";",                         h(cls.SEMICOLON)),
-                (r"\Z",                        h(cls.EOF)),
                 (r"\s+",                       h(cls.WHITESPACE)),
                 (r".",                         h(cls.OTHER))
             ], re.MULTILINE | re.DOTALL)
@@ -61,14 +59,13 @@ class CqlSplitter(object):
                 if stm:
                     statements.append(stm)
                 cur_statement = ''
-            elif tk.tpe == cls.EOF:
-                stm = cur_statement.strip()
-                if stm:
-                    statements.append(stm)
-                break
             elif tk.tpe in (cls.WHITESPACE, cls.BLOCK_COMMENT):
                 cur_statement += ' '
             elif tk.tpe in (cls.STRING, cls.OTHER):
                 cur_statement += tk.token
+
+        stm = cur_statement.strip()
+        if stm:
+            statements.append(stm)
 
         return statements
