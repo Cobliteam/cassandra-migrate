@@ -5,6 +5,7 @@ from __future__ import print_function, unicode_literals
 import re
 from collections import namedtuple
 
+
 class CqlSplitter(object):
     """
     Makeshift CQL parser that can only split up multiple statements.
@@ -66,8 +67,8 @@ class CqlSplitter(object):
                     statements.append(stm)
                 break
             elif tk.tpe in (cls.WHITESPACE, cls.BLOCK_COMMENT):
-                cur_statement += ' ';
+                cur_statement += ' '
             elif tk.tpe in (cls.STRING, cls.OTHER):
-                cur_statement += tk.token;
+                cur_statement += tk.token
 
         return statements

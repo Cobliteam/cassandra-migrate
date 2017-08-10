@@ -17,6 +17,7 @@ DEFAULT_NEW_MIGRATION_TEXT = """
    {full_desc} */
 """.lstrip()
 
+
 def _assert_type(data, key, tpe, default=None):
     """Extract and verify if a key in a dictionary has a given type"""
     value = data.get(key, default)

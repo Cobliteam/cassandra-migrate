@@ -11,8 +11,8 @@ import hashlib
 import io
 from collections import namedtuple
 
-import yaml
 import arrow
+
 
 class Migration(namedtuple('Migration', 'path name content checksum')):
     """
@@ -36,8 +36,8 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
     @staticmethod
     def _natural_sort_key(s):
         """Generate a sort key for natural sorting"""
-        k =  tuple(int(text) if text.isdigit() else text
-                   for text in re.split(r'([0-9]+)', s))
+        k = tuple(int(text) if text.isdigit() else text
+                  for text in re.split(r'([0-9]+)', s))
         return k
 
     @classmethod

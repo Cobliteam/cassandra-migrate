@@ -9,7 +9,9 @@ import logging
 import argparse
 import subprocess
 
-from . import Migrator, Migration, MigrationConfig, MigrationError
+from cassandra_migrate import (Migrator, Migration, MigrationConfig,
+                               MigrationError)
+
 
 def open_file(filename):
     if sys.platform == 'win32':
@@ -25,12 +27,13 @@ def open_file(filename):
         opener.append(filename)
         subprocess.call(opener)
 
+
 def main():
     logging.basicConfig(level=logging.INFO)
     logging.getLogger("cassandra.policies").setLevel(logging.ERROR)
 
-
-    parser = argparse.ArgumentParser(description='Simple Cassandra migration tool')
+    parser = argparse.ArgumentParser(
+        description='Simple Cassandra migration tool')
     parser.add_argument('-H', '--hosts', default='127.0.0.1',
                         help='Comma-separated list of contact points')
     parser.add_argument('-p', '--port', type=int, default=9042,
@@ -46,30 +49,36 @@ def main():
 
     cmds = parser.add_subparsers(help='sub-command help')
 
-    bline = cmds.add_parser('baseline',
+    bline = cmds.add_parser(
+        'baseline',
         help='Baseline database state, advancing migration information without '
              'making changes')
     bline.set_defaults(action='baseline')
 
-    reset = cmds.add_parser('reset',
+    reset = cmds.add_parser(
+        'reset',
         help='Reset database state, by dropping the keyspace (if it exists) '
              'and recreating it from scratch')
     reset.set_defaults(action='reset')
 
-    mgrat = cmds.add_parser('migrate',
+    mgrat = cmds.add_parser(
+        'migrate',
         help='Migrate database up to the most recent (or specified) version '
              'by applying any new migration scripts in sequence')
     mgrat.add_argument('-f', '--force', action='store_true',
-                        help='Force migration even if last attempt failed')
+                       help='Force migration even if last attempt failed')
     mgrat.set_defaults(action='migrate')
 
-    stats = cmds.add_parser('status',
+    stats = cmds.add_parser(
+        'status',
         help='Print current state of keyspace')
     stats.set_defaults(action='status')
 
-    genrt = cmds.add_parser('generate',
+    genrt = cmds.add_parser(
+        'generate',
         help='Generate a new migration file')
-    genrt.add_argument('description',
+    genrt.add_argument(
+        'description',
         help='Brief description of the new migration')
     genrt.set_defaults(action='generate')
 
@@ -81,7 +90,8 @@ def main():
     config = MigrationConfig.load(opts.config_file)
 
     if opts.action == 'generate':
-        new_path = Migration.generate(config=config, description=opts.description)
+        new_path = Migration.generate(config=config,
+                                      description=opts.description)
         if sys.stdin.isatty():
             open_file(new_path)
 
@@ -100,5 +110,3 @@ def main():
             except MigrationError as e:
                 print('Error: {}'.format(e), file=sys.stderr)
                 sys.exit(1)
-
-

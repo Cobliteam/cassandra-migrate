@@ -8,16 +8,15 @@ import re
 import logging
 import uuid
 import codecs
-from collections import namedtuple
 from future.moves.itertools import zip_longest
 
 import arrow
 from tabulate import tabulate
-from cassandra import ConsistencyLevel, DriverException
+from cassandra import ConsistencyLevel
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
-from cassandra_migrate import (Migration, MigrationConfig, FailedMigration,
-                               InconsistentState)
+from cassandra_migrate import (Migration, FailedMigration, InconsistentState,
+                               UnknownMigration, ConcurrentMigration)
 from cassandra_migrate.cql import CqlSplitter
 
 
@@ -58,6 +57,7 @@ DELETE_DB_VERSION = """
 DELETE FROM "{keyspace}"."{table}" WHERE id = %s IF state = %s
 """
 
+
 def cassandra_ddl_repr(data):
     """Generate a string representation of a map suitable for use in C* DDL"""
     if isinstance(data, str):
@@ -79,6 +79,7 @@ def cassandra_ddl_repr(data):
             return 'false'
     else:
         raise ValueError('Cannot convert data to a DDL representation')
+
 
 class Migrator(object):
     """Execute migration operations in a C* database based on configuration.
@@ -134,17 +135,19 @@ class Migrator(object):
         if not self.cluster:
             raise RuntimeError("Cluster has shut down")
 
-    @property
-    def session(self):
-        """Initialize and configure a  C* driver session if needed"""
-
-        self._check_cluster()
-
+    def _init_session(self):
         if not self._session:
             s = self._session = self.cluster.connect()
             s.default_consistency_level = ConsistencyLevel.ALL
             s.default_serial_consistency_level = ConsistencyLevel.SERIAL
             s.default_timeout = 120
+
+    @property
+    def session(self):
+        """Initialize and configure a  C* driver session if needed"""
+
+        self._check_cluster()
+        self._init_session()
 
         return self._session
 
@@ -166,7 +169,7 @@ class Migrator(object):
         if isinstance(v, int):
             num = v
         elif v.isdigit():
-            num =  int(v)
+            num = int(v)
         else:
             try:
                 num = self.config.migrations.index(v)
@@ -195,8 +198,7 @@ class Migrator(object):
         return self.session.execute(query, *args, **kwargs)
 
     def _keyspace_exists(self):
-        # Manually start session so the cluster metadata is populated
-        session = self.session
+        self._init_session()
 
         return self.config.keyspace in self.cluster.metadata.keyspaces
 
@@ -208,15 +210,16 @@ class Migrator(object):
 
         self.logger.info("Creating keyspace '{}'".format(self.config.keyspace))
 
-        query = self._q(CREATE_KEYSPACE,
-            replication=cassandra_ddl_repr(self.current_profile['replication']),
-            durable_writes=cassandra_ddl_repr(self.current_profile['durable_writes']))
+        profile = self.current_profile
+        self._execute(self._q(
+            CREATE_KEYSPACE,
+            replication=cassandra_ddl_repr(profile['replication']),
+            durable_writes=cassandra_ddl_repr(profile['durable_writes'])))
 
-        self._execute(query)
         self.cluster.refresh_keyspace_metadata(self.config.keyspace)
 
     def _table_exists(self):
-        session = self.session
+        self._init_session()
 
         ks_metadata = self.cluster.metadata.keyspaces.get(self.config.keyspace,
                                                           None)
@@ -312,9 +315,8 @@ class Migrator(object):
             self.logger.info('Database is already up-to-date')
         else:
             self.logger.info(
-                'Pending migrations found. '
-                'Current version: {}, Latest version: {}'.format(
-                last_version, len(migrations)))
+                'Pending migrations found. Current version: {}, '
+                'Latest version: {}'.format(last_version, len(migrations)))
 
         pending_migrations = enumerate(
             pending_migrations, (last_version or 0) + 1)
@@ -363,7 +365,7 @@ class Migrator(object):
         if skip:
             statements = []
             self.logger.info('Migration is marked for skipping, '
-                         'not actually running script')
+                             'not actually running script')
         else:
             statements = CqlSplitter.split(migration.content)
 
@@ -373,24 +375,25 @@ class Migrator(object):
         result = None
         try:
             if statements:
-                self.logger.info('Executing migration - {} CQL statements'.format(
-                    len(statements)))
+                self.logger.info('Executing migration - '
+                                 '{} CQL statements'.format(len(statements)))
 
-            # Set default keyspace so migrations don't need to refer to it manually
+            # Set default keyspace so migrations don't need to refer to it
+            # manually
             # Fixes https://github.com/Cobliteam/cassandra-migrate/issues/5
             self.session.execute('USE {};'.format(self.config.keyspace))
 
             for statement in statements:
                 self.session.execute(statement)
-        except Exception as e:
+        except Exception:
             self.logger.exception('Failed to execute migration')
             raise FailedMigration(version, migration.name)
         else:
             new_state = (Migration.State.SUCCEEDED if not skip
-                        else Migration.State.SKIPPED)
+                         else Migration.State.SKIPPED)
         finally:
-            self.logger.info('Finalizing migration version with state {}'.format(
-                new_state))
+            self.logger.info('Finalizing migration version with '
+                             'state {}'.format(new_state))
             result = self._execute(
                 self._q(FINALIZE_DB_VERSION),
                 (new_state, version_uuid, Migration.State.IN_PROGRESS))
@@ -408,7 +411,7 @@ class Migrator(object):
 
         self.logger.warn(
             'Cleaning up previous failed migration '
-             '(version {}): {}'.format(last_version.version, last_version.name))
+            '(version {}): {}'.format(last_version.version, last_version.name))
 
         result = self._execute(
             self._q(DELETE_DB_VERSION),
