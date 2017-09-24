@@ -66,10 +66,13 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
                 for f in cls.sort_files(files)]
 
     @classmethod
-    def generate(cls, config, description, ext='.cql', date=None):
+    def generate(cls, config, description, ext=None, date=None):
         clean_desc = re.sub(r'[\W\s]+', '_', description)
+        if ext is None:
+            ext = '.cql'
+        if date is None:
+            date = arrow.utcnow()
         next_version = config.next_version()
-        date = date or arrow.utcnow()
 
         format_args = {
             'desc': clean_desc,
