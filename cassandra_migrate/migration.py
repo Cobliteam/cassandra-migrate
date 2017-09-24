@@ -38,9 +38,8 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
         with open(path, 'r', encoding='utf-8') as fp:
             content = fp.read()
 
-        checksum = bytes(hashlib.sha256(content.encode('utf-8')).digest())
         return cls(path=os.path.abspath(path), name=os.path.basename(path),
-                   content=content, checksum=checksum)
+                   content=content)
 
     @staticmethod
     def _natural_sort_key(s):
@@ -82,15 +81,31 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
 
         fname = config.format_migration_string(
             config.new_migration_name, **format_args)
-        path = os.path.join(config.migrations_path, fname + ext)
+        fname += ext
+        path = os.path.join(config.migrations_path, fname)
 
         content = config.format_migration_string(
-            config.new_migration_text, **format_args)
+            config.new_migration_text + '\n', **format_args)
 
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(content + '\n')
+        return Migration(name=fname, path=os.path.abspath(path),
+                         content=content)
 
-        return path
+    def __new__(cls, path, name, content, checksum=None):
+        if isinstance(content, bytes):
+            content_bytes = content
+            content = content.decode('utf-8')
+        else:
+            content_bytes = content.encode('utf-8')
+
+        if checksum is None:
+            checksum = bytes(hashlib.sha256(content_bytes).digest())
+
+        return super(Migration, cls).__new__(cls, path, name, content,
+                                             checksum)
 
     def __str__(self):
         return 'Migration("{}")'.format(self.name)
+
+    def persist(self):
+        with open(os.path.abspath(self.path), 'w', encoding='utf-8') as f:
+            f.write(self.content)

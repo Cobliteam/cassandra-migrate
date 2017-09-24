@@ -1,6 +1,10 @@
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 
+import os.path
+
+import arrow
 import pytest
+from cassandra_migrate.config import MigrationConfig
 from cassandra_migrate.migration import Migration
 
 
@@ -42,3 +46,35 @@ def test_load_all(tmpdir):
         migrations['v02.py'],
         migrations['v10.cql']
     ]
+
+
+def test_generate(migration_config_data, tmpdir):
+    migration_config_data['new_migration_name'] = \
+        'v{next_version:02d}_{desc}_{date:YYYY-MM-DD-HH-mm-ss}_{keyspace}'
+    migration_config_data['new_migration_text'] = \
+        'Test: {full_desc}'
+    config = MigrationConfig(migration_config_data, str(tmpdir))
+
+    description = 'Hello, world!'
+    date = arrow.get(2017, 1, 1, 0, 0, 0)
+
+    cql_migration = Migration.generate(config, description, date=date)
+    assert cql_migration.name == 'v01_Hello_world__2017-01-01-00-00-00_test.cql'
+    assert cql_migration.content == 'Test: Hello, world!\n'
+    assert os.path.dirname(cql_migration.path) == \
+        os.path.abspath(str(tmpdir.join('migrations')))
+
+    py_migration = Migration.generate(config, description, date=date, ext='.py')
+    assert py_migration.name == 'v01_Hello_world__2017-01-01-00-00-00_test.py'
+    assert cql_migration.content == 'Test: Hello, world!\n'
+    assert os.path.dirname(py_migration.path) == \
+        os.path.abspath(str(tmpdir.join('migrations')))
+
+
+def test_persist(tmpdir):
+    path = tmpdir.join('test.cql')
+    migration = pytest.helpers.make_migration(str(path))
+    migration.persist()
+
+    assert path.read_text('utf-8')\
+           == migration.content
