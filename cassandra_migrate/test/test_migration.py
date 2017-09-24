@@ -76,5 +76,4 @@ def test_persist(tmpdir):
     migration = pytest.helpers.make_migration(str(path))
     migration.persist()
 
-    assert path.read_text('utf-8')\
-           == migration.content
+    assert path.read_text('utf-8') == migration.content

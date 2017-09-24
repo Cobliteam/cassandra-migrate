@@ -162,6 +162,6 @@ class MigrationConfig(object):
 
     def next_version(self):
         if self.migrations is None:
-            raise RuntimeError('Migrations are not loaded')
+            return 1
 
         return len(self.migrations) + 1
