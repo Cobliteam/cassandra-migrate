@@ -98,7 +98,13 @@ class MigrationConfig(object):
             validate=self.validate_migration_format_string,
             default=DEFAULT_NEW_MIGRATION_TEXT)
 
-        self.migrations = Migration.glob_all(self.migrations_path, '*.cql')
+        self.migrations = None
+
+    def load_migrations(self):
+        if self.migrations is not None:
+            raise RuntimeError('Migrations have already been loaded')
+
+        self.migrations = Migration.load_all(self.migrations_path, '*.cql')
 
     def extract_config_entry(self, data, key, default=_EMPTY_DEFAULT,
                              validate=None, type_=None, prefix=''):
