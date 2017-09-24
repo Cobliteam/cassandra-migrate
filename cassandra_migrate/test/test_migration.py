@@ -22,7 +22,7 @@ def test_sort_files(input_files, sorted_files):
 def test_load(tmpdir):
     f = tmpdir.join('test.cql')
     expected = pytest.helpers.make_migration(str(f))
-    f.write_binary(expected.content)
+    f.write_text(expected.content, 'utf-8')
 
     actual = Migration.load(str(f))
 
@@ -34,7 +34,7 @@ def test_load_all(tmpdir):
     for name in ['v02.py', 'v1.cql', 'v10.cql']:
         path = tmpdir.join(name)
         migrations[name] = migration = pytest.helpers.make_migration(str(path))
-        path.write_binary(migration.content)
+        path.write_text(migration.content, 'utf-8')
 
     result = Migration.load_all(str(tmpdir), '*.cql', '*.py')
     assert result == [

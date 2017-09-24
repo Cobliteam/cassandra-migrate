@@ -56,7 +56,6 @@ class UnknownMigration(MigrationError):
             'migration (version {}): {} '.format(version, name))
 
 
-
 from .migration import Migration
 from .config import MigrationConfig
 from .migrator import Migrator

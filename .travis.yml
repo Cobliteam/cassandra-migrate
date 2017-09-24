@@ -5,7 +5,6 @@ env:
   # cassandra-driver takes ages to install with Cython enabled
   - CASS_DRIVER_NO_CYTHON=1
 matrix:
-
   include:
     - python: "2.7"
     - python: "3.4"

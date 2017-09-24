@@ -2,14 +2,14 @@
 
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
+from builtins import str, open
 
 import re
-from builtins import unicode, open
-
 import os
-import yaml
 from string import Formatter
 
+import yaml
+from .util import YamlUnicodeLoader
 from .migration import Migration
 
 
@@ -56,7 +56,7 @@ class MigrationConfig(object):
     def load(cls, path):
         """Load a migration config from a file, using it's dir. as base path"""
         with open(path, 'r', encoding='utf-8') as f:
-            config = yaml.load(f)
+            config = yaml.load(f, loader=YamlUnicodeLoader)
 
         return cls(config, os.path.dirname(path))
 
@@ -71,7 +71,7 @@ class MigrationConfig(object):
         self._formatter = Formatter()
 
         self.keyspace = self.extract_config_entry(
-            data, 'keyspace', type_=unicode, validate=self.validate_identifier)
+            data, 'keyspace', type_=str, validate=self.validate_identifier)
 
         user_profiles = self.extract_config_entry(
             data, 'profiles', type_=dict, default={})
@@ -80,21 +80,21 @@ class MigrationConfig(object):
                              for name, profile in user_profiles.items())
 
         migrations_path = self.extract_config_entry(
-            data, 'migrations_path', type_=unicode)
+            data, 'migrations_path', type_=str)
         self.migrations_path = os.path.join(base_path, migrations_path)
 
         self.migrations_table = self.extract_config_entry(
-            data, 'migrations_table', type_=unicode,
+            data, 'migrations_table', type_=str,
             validate=self.validate_identifier,
             default='database_migrations')
 
         self.new_migration_name = self.extract_config_entry(
-            data, 'new_migration_name', type_=unicode,
+            data, 'new_migration_name', type_=str,
             validate=self.validate_migration_format_string,
             default='v{next_version}_{desc}')
 
         self.new_migration_text = self.extract_config_entry(
-            data, 'new_migration_text', type_=unicode,
+            data, 'new_migration_text', type_=str,
             validate=self.validate_migration_format_string,
             default=DEFAULT_NEW_MIGRATION_TEXT)
 
@@ -128,7 +128,7 @@ class MigrationConfig(object):
             try:
                 validate(value)
             except ValueError as e:
-                msg = 'Validation failed: {}'.format(e.message)
+                msg = 'Validation failed: {}'.format(e)
                 raise ConfigValidationError(key_str, value, msg)
 
         return value

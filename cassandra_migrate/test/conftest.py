@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+from builtins import bytes
 
 import os.path
 
@@ -26,9 +27,9 @@ def migration_config_data():
 
 @pytest.helpers.register
 def make_migration(path):
-    content = 'abc'.encode('utf-8')
-    sha256_digest = bytes(bytearray.fromhex(
-        b'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'))
+    content = 'abc'
+    sha256_digest = bytes.fromhex(
+        'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad')
 
     return Migration(name=os.path.basename(path), path=os.path.abspath(path),
                      content=content, checksum=sha256_digest)

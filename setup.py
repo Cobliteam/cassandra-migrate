@@ -19,5 +19,7 @@ setup(name='cassandra-migrate',
           'arrow',
           'tabulate'
       ],
-      scripts=['bin/cassandra-migrate'],
+      entry_points={
+          'console_scripts': ['cassandra-migrate=cassandra_migrate.cli:main']
+      },
       keywords='cassandra schema migration')

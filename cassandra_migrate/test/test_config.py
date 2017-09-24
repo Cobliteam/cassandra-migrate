@@ -9,7 +9,7 @@ def test_config_valid(migration_config_data):
     cfg = MigrationConfig(migration_config_data, '.')
 
     assert cfg.keyspace == 'test'
-    assert cfg.profiles.keys() == ['test', 'dev']
+    assert set(cfg.profiles.keys()) == {'test', 'dev'}
     assert cfg.profiles['test']['replication'] == \
         migration_config_data['profiles']['test']['replication']
     assert cfg.profiles['test']['durable_writes']
@@ -58,7 +58,7 @@ def test_next_version_nonempty(migration_config_data, tmpdir):
     for i in range(1, 1 + count):
         f = migration_dir.join('v{:02d}.cql'.format(i))
         migration = pytest.helpers.make_migration(str(f))
-        f.write_binary(migration.content)
+        f.write_text(migration.content, 'utf-8')
 
     config.load_migrations()
 
