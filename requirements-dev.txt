@@ -1,4 +1,5 @@
 pytest
+pytest-helpers-namespace
 coverage
 flake8
 tox

@@ -5,31 +5,13 @@ import pytest
 from cassandra_migrate.config import ConfigValidationError, MigrationConfig
 
 
-@pytest.fixture
-def base_config():
-    return {
-        'keyspace': 'test',
-        'profiles': {
-            'test': {
-                'replication': {'class': 'SimpleStrategy',
-                                'replication_factor': 1},
-                'durable_writes': True
-            }
-        },
-        'migrations_path': 'migrations',
-        'migrations_table': 'test_migrations',
-        'new_migration_name': 'v{next_version}_{desc}',
-        'new_migration_text': 'Test Migration v{next_version}'
-    }
-
-
-def test_config_valid(base_config):
-    cfg = MigrationConfig(base_config, '.')
+def test_config_valid(migration_config_data):
+    cfg = MigrationConfig(migration_config_data, '.')
 
     assert cfg.keyspace == 'test'
     assert cfg.profiles.keys() == ['test', 'dev']
     assert cfg.profiles['test']['replication'] == \
-        base_config['profiles']['test']['replication']
+        migration_config_data['profiles']['test']['replication']
     assert cfg.profiles['test']['durable_writes']
     assert cfg.migrations_path == './migrations'
     assert cfg.migrations_table == 'test_migrations'
@@ -51,10 +33,10 @@ def test_config_valid(base_config):
     ('new_migration_text', 1),
     ('new_migration_text', '{bad_field}')
 ))
-def test_config_invalid(base_config, key, value):
-    base_config[key] = value
+def test_config_invalid(migration_config_data, key, value):
+    migration_config_data[key] = value
     with pytest.raises(ConfigValidationError) as raised:
-        MigrationConfig(base_config, '.')
+        MigrationConfig(migration_config_data, '.')
 
     exc = raised.value
     assert exc.key.startswith(key + '.') or exc.key == key
