@@ -56,7 +56,7 @@ class MigrationConfig(object):
     def load(cls, path):
         """Load a migration config from a file, using it's dir. as base path"""
         with open(path, 'r', encoding='utf-8') as f:
-            config = yaml.load(f, loader=YamlUnicodeLoader)
+            config = yaml.load(f, Loader=YamlUnicodeLoader)
 
         return cls(config, os.path.dirname(path))
 
