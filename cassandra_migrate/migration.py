@@ -8,7 +8,6 @@ import re
 import os
 import glob
 import hashlib
-import io
 from collections import namedtuple
 
 import arrow
@@ -33,6 +32,16 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
         SKIPPED = 'SKIPPED'
         IN_PROGRESS = 'IN_PROGRESS'
 
+    @classmethod
+    def load(cls, path):
+        """Load a migration from a given file"""
+        with open(path, 'r', encoding='utf-8') as fp:
+            content = fp.read()
+
+        checksum = bytes(hashlib.sha256(content.encode('utf-8')).digest())
+        return cls(path=os.path.abspath(path), name=os.path.basename(path),
+                   content=content, checksum=checksum)
+
     @staticmethod
     def _natural_sort_key(s):
         """Generate a sort key for natural sorting"""
@@ -41,39 +50,27 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
         return k
 
     @classmethod
-    def load(cls, path):
-        """Load a migration from a given file"""
-        with open(path, 'r', encoding='utf-8') as fp:
-            content = fp.read()
-
-        checksum = bytes(hashlib.sha256(content.encode('utf-8')).digest())
-        return cls(os.path.abspath(path), os.path.basename(path), content,
-                   checksum)
-
-    @classmethod
-    def sort_paths(cls, paths):
+    def sort_files(cls, paths):
         """Sort paths naturally by basename, to order by migration version"""
-        return sorted(paths,
-                      key=lambda p: cls._natural_sort_key(os.path.basename(p)))
+        return sorted(paths, key=cls._natural_sort_key)
 
     @classmethod
-    def glob_all(cls, base_path, *patterns):
-        """Load all paths matching a glob as migrations in sorted order"""
+    def load_all(cls, base_path, *patterns):
+        """Load all paths matching the glob patterns as migrations in order"""
 
-        paths = []
+        files = set()
         for pattern in patterns:
-            paths.extend(glob.iglob(os.path.join(base_path, pattern)))
+            for path in glob.iglob(os.path.join(base_path, pattern)):
+                files.add(os.path.basename(path))
 
-        return list(map(cls.load, cls.sort_paths(paths)))
+        return [cls.load(os.path.join(base_path, f))
+                for f in cls.sort_files(files)]
 
     @classmethod
-    def generate(cls, config, description):
-        fname_fmt = config.new_migration_name
-        text_fmt = config.new_migration_text
-
+    def generate(cls, config, description, ext='.cql', date=None):
         clean_desc = re.sub(r'[\W\s]+', '_', description)
-        next_version = len(config.migrations) + 1
-        date = arrow.utcnow()
+        next_version = config.next_version()
+        date = date or arrow.utcnow()
 
         format_args = {
             'desc': clean_desc,
@@ -83,14 +80,17 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
             'keyspace': config.keyspace
         }
 
-        fname = fname_fmt.format(**format_args) + '.cql'
-        new_path = os.path.join(config.migrations_path, fname)
+        fname = config.format_migration_string(
+            config.new_migration_name, **format_args)
+        path = os.path.join(config.migrations_path, fname + ext)
 
-        with io.open(new_path, 'w', encoding='utf-8') as f:
-            new_text = text_fmt.format(**format_args)
-            f.write(new_text + '\n')
+        content = config.format_migration_string(
+            config.new_migration_text, **format_args)
 
-        return new_path
+        with open(path, 'w', encoding='utf-8') as f:
+            f.write(content + '\n')
+
+        return path
 
     def __str__(self):
         return 'Migration("{}")'.format(self.name)
