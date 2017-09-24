@@ -155,7 +155,7 @@ class MigrationConfig(object):
                 raise ValueError('Unknown format field: {}'.format(field_name))
 
     def format_migration_string(self, fmt, **kwargs):
-        if kwargs.keys() != self.MIGRATION_FORMAT_STRING_FIELDS:
+        if set(kwargs.keys()) != self.MIGRATION_FORMAT_STRING_FIELDS:
             raise ValueError('Invalid keys for migration name format data')
 
         return self._formatter.vformat(fmt, [], kwargs)
