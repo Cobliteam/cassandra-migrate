@@ -115,7 +115,7 @@ class MigrationConfig(object):
 
         if type_ and not isinstance(value, type_):
             msg = 'Value has wrong type {}, expected {}'.format(
-                type(value), validate)
+                type(value), type_)
             raise ConfigValidationError(key_str, value, msg)
 
         if callable(validate):
