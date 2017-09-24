@@ -159,3 +159,9 @@ class MigrationConfig(object):
             raise ValueError('Invalid keys for migration name format data')
 
         return self._formatter.vformat(fmt, [], kwargs)
+
+    def next_version(self):
+        if self.migrations is None:
+            raise RuntimeError('Migrations are not loaded')
+
+        return len(self.migrations) + 1

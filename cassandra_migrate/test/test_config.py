@@ -58,3 +58,26 @@ def test_config_invalid(base_config, key, value):
 
     exc = raised.value
     assert exc.key.startswith(key + '.') or exc.key == key
+
+
+def test_next_version_empty(migration_config_data, tmpdir):
+    config = MigrationConfig(migration_config_data, str(tmpdir))
+    config.load_migrations()
+
+    assert config.next_version() == 1
+
+
+def test_next_version_nonempty(migration_config_data, tmpdir):
+    config = MigrationConfig(migration_config_data, str(tmpdir))
+
+    count = 5
+    migration_dir = tmpdir.join('migrations').ensure(dir=True)
+
+    for i in range(1, 1 + count):
+        f = migration_dir.join('v{:02d}.cql'.format(i))
+        migration = pytest.helpers.make_migration(str(f))
+        f.write_binary(migration.content)
+
+    config.load_migrations()
+
+    assert config.next_version() == count + 1
