@@ -1,5 +1,6 @@
 pytest
 pytest-helpers-namespace
+mock; python_version < '3.4'
 coverage
 flake8
 tox
