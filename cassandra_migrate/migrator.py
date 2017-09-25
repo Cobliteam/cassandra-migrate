@@ -3,22 +3,21 @@
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
 from builtins import str
-
-import re
-import logging
-import uuid
-import codecs
 from future.moves.itertools import zip_longest
 
+import logging
+import uuid
+
 import arrow
-from tabulate import tabulate
+import codecs
 from cassandra import ConsistencyLevel
-from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
+from cassandra.cluster import Cluster
+from tabulate import tabulate
 from cassandra_migrate import (Migration, FailedMigration, InconsistentState,
                                UnknownMigration, ConcurrentMigration)
 from cassandra_migrate.cql import CqlSplitter
-
+from cassandra_migrate.util import cassandra_ddl_repr
 
 CREATE_MIGRATIONS_TABLE = """
 CREATE TABLE {keyspace}.{table} (
@@ -56,29 +55,6 @@ UPDATE "{keyspace}"."{table}" SET state = %s WHERE id = %s IF state = %s
 DELETE_DB_VERSION = """
 DELETE FROM "{keyspace}"."{table}" WHERE id = %s IF state = %s
 """
-
-
-def cassandra_ddl_repr(data):
-    """Generate a string representation of a map suitable for use in C* DDL"""
-    if isinstance(data, str):
-        return "'" + re.sub(r"(?<!\\)'", "\\'", data) + "'"
-    elif isinstance(data, dict):
-        pairs = []
-        for k, v in data.items():
-            if not isinstance(k, str):
-                raise ValueError('DDL map keys must be strings')
-
-            pairs.append(cassandra_ddl_repr(k) + ': ' + cassandra_ddl_repr(v))
-        return '{' + ', '.join(pairs) + '}'
-    elif isinstance(data, int):
-        return str(data)
-    elif isinstance(data, bool):
-        if data:
-            return 'true'
-        else:
-            return 'false'
-    else:
-        raise ValueError('Cannot convert data to a DDL representation')
 
 
 class Migrator(object):
