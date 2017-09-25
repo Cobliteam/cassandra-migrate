@@ -56,6 +56,8 @@ DELETE_DB_VERSION = """
 DELETE FROM "{keyspace}"."{table}" WHERE id = %s IF state = %s
 """
 
+logger = logging.getLogger("cassandra_migrate.migrator")
+
 
 class Migrator(object):
     """Execute migration operations in a C* database based on configuration.
@@ -67,8 +69,6 @@ class Migrator(object):
     - hosts: comma-separated list of contact points
     - port: connection port
     """
-
-    logger = logging.getLogger("Migrator")
 
     def __init__(self, config, profile='dev', hosts=['127.0.0.1'], port=9042,
                  user=None, password=None):
