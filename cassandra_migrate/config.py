@@ -57,7 +57,7 @@ class MigrationConfig(object):
         self.keyspace = _assert_type(data, 'keyspace', str)
 
         self.profiles = self.DEFAULT_PROFILES.copy()
-        profiles = _assert_type(data, 'profiles', dict)
+        profiles = _assert_type(data, 'profiles', dict, default={})
         for name, profile in profiles.items():
             self.profiles[name] = {
                 'replication': _assert_type(profile, 'replication', dict),
