@@ -102,6 +102,9 @@ Common parameters:
                             Path to configuration file
       -m PROFILE, --profile PROFILE
                             Name of keyspace profile to use
+      -s SSL-CERT, --ssl-cert SSL-CERT
+                            File path of ssl certificate to be used for connecting to the cluster.
+                            If this option is passed cassandra-migrate will use ssl to connect to the cluster.
 
 migrate
 ~~~~~~~

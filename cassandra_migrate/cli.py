@@ -46,6 +46,8 @@ def main():
                         help='Path to configuration file')
     parser.add_argument('-m', '--profile', default='dev',
                         help='Name of keyspace profile to use')
+    parser.add_argument('-s', '--ssl-cert', default=None,
+                        help='File path of ssl certificate to be used for connecting to the cluster. \nIf this option is passed cassandra-migrate will use ssl to connect to the cluster.')
 
     cmds = parser.add_subparsers(help='sub-command help')
 
@@ -99,7 +101,8 @@ def main():
     else:
         with Migrator(config=config, profile=opts.profile,
                       hosts=opts.hosts.split(','), port=opts.port,
-                      user=opts.user, password=opts.password) as migrator:
+                      user=opts.user, password=opts.password,
+                      ssl_cert_path=opts.ssl_cert) as migrator:
             cmd_method = getattr(migrator, opts.action)
             if not callable(cmd_method):
                 print('Error: invalid command', file=sys.stderr)
