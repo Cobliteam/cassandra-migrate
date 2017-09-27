@@ -95,7 +95,7 @@ class Migrator(object):
     logger = logging.getLogger("Migrator")
 
     def __init__(self, config, profile='dev', hosts=['127.0.0.1'], port=9042,
-                 user=None, password=None):
+                 user=None, password=None, ssl_cert_path=None):
         self.config = config
 
         try:
@@ -108,13 +108,19 @@ class Migrator(object):
         else:
             auth_provider = None
 
+        if ssl_cert_path:
+            ssl_options = self._build_ssl_options(ssl_cert_path)
+        else:
+            ssl_options = None
+
         self.cluster = Cluster(
             contact_points=hosts,
             port=port,
             auth_provider=auth_provider,
             max_schema_agreement_wait=300,
             control_connection_timeout=10,
-            connect_timeout=30)
+            connect_timeout=30,
+            ssl_options=ssl_options)
 
         self._session = None
 
@@ -129,6 +135,11 @@ class Migrator(object):
         if self.cluster is not None:
             self.cluster.shutdown()
             self.cluster = None
+
+    def _build_ssl_options(self, ssl_cert_path):
+        return {
+            'ca_certs': ssl_cert_path
+        }
 
     def _check_cluster(self):
         """Check if the cluster is still alive, raise otherwise"""
