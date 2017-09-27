@@ -108,7 +108,10 @@ class Migrator(object):
         else:
             auth_provider = None
 
-        ssl_options = self._build_ssl_options(ssl_cert_path) if ssl_cert_path else None
+        if ssl_cert_path:
+            ssl_options = self._build_ssl_options(ssl_cert_path)
+        else:
+            ssl_options = None
 
         self.cluster = Cluster(
             contact_points=hosts,
