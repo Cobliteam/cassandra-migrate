@@ -14,8 +14,9 @@ from cassandra import ConsistencyLevel
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster
 from tabulate import tabulate
-from cassandra_migrate import (Migration, FailedMigration, InconsistentState,
-                               UnknownMigration, ConcurrentMigration)
+from cassandra_migrate import (Migration)
+from cassandra_migrate.error import FailedMigration, ConcurrentMigration, \
+    InconsistentState, UnknownMigration
 from cassandra_migrate.cql import CqlSplitter
 from cassandra_migrate.util import cassandra_ddl_repr
 
