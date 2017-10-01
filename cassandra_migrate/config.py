@@ -11,6 +11,7 @@ from string import Formatter
 import yaml
 from .util import YamlUnicodeLoader
 from .migration import Migration
+from .error import ConfigValidationError
 
 
 DEFAULT_NEW_MIGRATION_TEXT = """
@@ -19,13 +20,6 @@ DEFAULT_NEW_MIGRATION_TEXT = """
 
    {full_desc} */
 """.lstrip()
-
-
-class ConfigValidationError(Exception):
-    def __init__(self, key, value, *args, **kwargs):
-        super(ConfigValidationError, self).__init__(args, kwargs)
-        self.key = key
-        self.value = value
 
 
 class MigrationConfig(object):
