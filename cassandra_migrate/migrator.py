@@ -2,12 +2,13 @@
 
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
-from builtins import str
+from builtins import input, str
 
 import re
 import logging
 import uuid
 import codecs
+from functools import wraps
 from future.moves.itertools import zip_longest
 
 import arrow
@@ -79,6 +80,20 @@ def cassandra_ddl_repr(data):
             return 'false'
     else:
         raise ValueError('Cannot convert data to a DDL representation')
+
+
+def confirmation_required(func):
+    """Asks for the user's confirmation before calling the decorated function"""
+    @wraps(func)
+    def wrapper(self, opts, *args, **kwargs):
+        if not opts.assume_yes:
+            confirmation = input("The {} operation cannot be undone. "
+                                 "Are you sure? [y/N] ".format(func.__name__))
+            if not confirmation.lower().startswith("y"):
+                return
+        opts.assume_yes = True
+        return func(self, opts, *args, **kwargs)
+    return wrapper
 
 
 class Migrator(object):
@@ -460,6 +475,7 @@ class Migrator(object):
         self._advance(pending_migrations, opts.db_version, cur_versions,
                       skip=True)
 
+    @confirmation_required
     def migrate(self, opts):
         """
         Migrate a database to a given version, applying any needed migrations
@@ -477,6 +493,7 @@ class Migrator(object):
         self._advance(pending_migrations, opts.db_version, cur_versions,
                       force=opts.force)
 
+    @confirmation_required
     def reset(self, opts):
         """Reset a database, by dropping the keyspace then migrating"""
         self._check_cluster()

@@ -51,6 +51,8 @@ def main():
                         'connecting to the cluster. \nIf this option is passed'
                         ' cassandra-migrate will use ssl to connect to the '
                         'cluster.')
+    parser.add_argument('-y', '--assume-yes', action='store_true',
+                        help='Automatically answer "yes" for all questions')
 
     cmds = parser.add_subparsers(help='sub-command help')
 
