@@ -16,6 +16,16 @@ class ConfigValidationError(ConfigError):
         self.value = value
 
 
+class UnknownMigrationFormat(ConfigError):
+    def __init__(self, path, *args):
+        self.path = path
+
+        _, ext = os.path.splitext(path)
+
+        msg = "Migration has unknown extension '{}': {}".format(ext, path)
+        super(ConfigError, self).__init__(msg, *args)
+
+
 class MigrationError(Error):
     """Base class for migration errors"""
     pass
