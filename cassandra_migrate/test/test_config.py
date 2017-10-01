@@ -2,7 +2,8 @@ from __future__ import unicode_literals
 
 import pytest
 
-from cassandra_migrate.config import ConfigValidationError, MigrationConfig
+from cassandra_migrate.config import MigrationConfig
+from cassandra_migrate.error import ConfigValidationError
 
 
 def test_config_valid(migration_config_data):

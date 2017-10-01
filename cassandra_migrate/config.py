@@ -9,9 +9,8 @@ import os
 from string import Formatter
 
 import yaml
-from .util import YamlUnicodeLoader
+from .util import YamlUnicodeLoader, extract_config_entry
 from .migration import Migration
-from .error import ConfigValidationError
 
 
 DEFAULT_NEW_MIGRATION_TEXT = """
@@ -44,8 +43,6 @@ class MigrationConfig(object):
     MIGRATION_FORMAT_STRING_FIELDS = {'desc', 'full_desc', 'next_version',
                                       'date', 'keyspace'}
 
-    _EMPTY_DEFAULT = object()
-
     @classmethod
     def load(cls, path):
         """Load a migration config from a file, using it's dir. as base path"""
@@ -64,30 +61,32 @@ class MigrationConfig(object):
 
         self._formatter = Formatter()
 
-        self.keyspace = self.extract_config_entry(
+        self.keyspace = extract_config_entry(
             data, 'keyspace', type_=str, validate=self.validate_identifier)
 
-        user_profiles = self.extract_config_entry(
+        user_profiles = extract_config_entry(
             data, 'profiles', type_=dict, default={})
         self.profiles = self.DEFAULT_PROFILES.copy()
         self.profiles.update((name, self.extract_profile(profile, name))
                              for name, profile in user_profiles.items())
 
-        migrations_path = self.extract_config_entry(
+        self.base_path = base_path
+
+        migrations_path = extract_config_entry(
             data, 'migrations_path', type_=str)
         self.migrations_path = os.path.join(base_path, migrations_path)
 
-        self.migrations_table = self.extract_config_entry(
+        self.migrations_table = extract_config_entry(
             data, 'migrations_table', type_=str,
             validate=self.validate_identifier,
             default='database_migrations')
 
-        self.new_migration_name = self.extract_config_entry(
+        self.new_migration_name = extract_config_entry(
             data, 'new_migration_name', type_=str,
             validate=self.validate_migration_format_string,
             default='v{next_version}_{desc}')
 
-        self.new_migration_text = self.extract_config_entry(
+        self.new_migration_text = extract_config_entry(
             data, 'new_migration_text', type_=str,
             validate=self.validate_migration_format_string,
             default=DEFAULT_NEW_MIGRATION_TEXT)
@@ -100,39 +99,12 @@ class MigrationConfig(object):
 
         self.migrations = Migration.load_all(self.migrations_path)
 
-    def extract_config_entry(self, data, key, default=_EMPTY_DEFAULT,
-                             validate=None, type_=None, prefix=''):
-        """Extract and verify a key from the config dictionary"""
-
-        key_str = prefix + key
-        value = data.get(key, None)
-        if value is None:
-            if default is self._EMPTY_DEFAULT:
-                raise ConfigValidationError(
-                    key_str, None, 'Key is mandatory')
-
-            value = default
-
-        if type_ and not isinstance(value, type_):
-            msg = 'Value has wrong type {}, expected {}'.format(
-                type(value), type_)
-            raise ConfigValidationError(key_str, value, msg)
-
-        if callable(validate):
-            try:
-                validate(value)
-            except ValueError as e:
-                msg = 'Validation failed: {}'.format(e)
-                raise ConfigValidationError(key_str, value, msg)
-
-        return value
-
     def extract_profile(self, data, name):
         prefix = 'profiles.{}.'.format(name)
         return {
-            'replication': self.extract_config_entry(
+            'replication': extract_config_entry(
                 data, 'replication', prefix=prefix, type_=dict),
-            'durable_writes': self.extract_config_entry(
+            'durable_writes': extract_config_entry(
                 data, 'durable_writes', prefix=prefix, default=True,
                 type_=bool)
         }

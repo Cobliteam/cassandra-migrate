@@ -1,5 +1,7 @@
 from builtins import str, bytes
 
+from cassandra_migrate.error import ConfigValidationError
+
 try:
     from yaml import CSafeLoader as SafeLoader
 except ImportError:
@@ -39,3 +41,34 @@ def cassandra_ddl_repr(data):
         return str(data)
     else:
         raise ValueError('Cannot convert data to a DDL representation')
+
+
+_NO_DEFAULT = object()
+
+
+def extract_config_entry(data, key, default=_NO_DEFAULT, validate=None,
+                         type_=None, prefix=''):
+    """Extract and verify a key from the config dictionary"""
+
+    key_str = prefix + key
+    value = data.get(key, None)
+    if value is None:
+        if default is _NO_DEFAULT:
+            raise ConfigValidationError(
+                key_str, None, 'Key is mandatory')
+
+        value = default
+
+    if type_ and not isinstance(value, type_):
+        msg = 'Value has wrong type {}, expected {}'.format(
+            type(value), type_)
+        raise ConfigValidationError(key_str, value, msg)
+
+    if callable(validate):
+        try:
+            validate(value)
+        except ValueError as e:
+            msg = 'Validation failed: {}'.format(e)
+            raise ConfigValidationError(key_str, value, msg)
+
+    return value
