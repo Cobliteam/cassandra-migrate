@@ -98,7 +98,7 @@ class MigrationConfig(object):
         if self.migrations is not None:
             raise RuntimeError('Migrations have already been loaded')
 
-        self.migrations = Migration.load_all(self.migrations_path, '*.cql')
+        self.migrations = Migration.load_all(self.migrations_path)
 
     def extract_config_entry(self, data, key, default=_EMPTY_DEFAULT,
                              validate=None, type_=None, prefix=''):

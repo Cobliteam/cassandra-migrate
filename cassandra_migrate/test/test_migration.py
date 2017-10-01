@@ -1,4 +1,5 @@
 from __future__ import unicode_literals, absolute_import
+from builtins import str
 
 from collections import namedtuple
 
@@ -6,12 +7,12 @@ import os.path
 
 import arrow
 import pytest
-from cassandra_migrate.config import MigrationConfig
-from cassandra_migrate.migration import Migration
 try:
     from unittest.mock import patch
 except ImportError:
     from mock import patch
+from cassandra_migrate.config import MigrationConfig
+from cassandra_migrate.migration import Migration, Format
 
 
 @pytest.mark.parametrize('input_files,sorted_files', (
@@ -34,7 +35,7 @@ def test_load(tmpdir):
     expected = pytest.helpers.make_migration(str(f))
     f.write_text(expected.content, 'utf-8')
 
-    actual = Migration.load(str(f))
+    actual = Migration.load(str(f), format=Format.CQL)
 
     assert expected == actual
 
@@ -46,7 +47,7 @@ def test_load_all(tmpdir):
         migrations[name] = migration = pytest.helpers.make_migration(str(path))
         path.write_text(migration.content, 'utf-8')
 
-    result = Migration.load_all(str(tmpdir), '*.cql', '*.py')
+    result = Migration.load_all(str(tmpdir))
     assert result == [
         migrations['v1.cql'],
         migrations['v02.py'],
@@ -55,26 +56,37 @@ def test_load_all(tmpdir):
 
 
 GenTestParams = \
-    namedtuple('GenTestParams', 'desc,next_version,fmt,ext,date,result')
+    namedtuple('GenTestParams', 'desc,next_version,name_fmt,format,date,result')
 
 
 @pytest.mark.parametrize(GenTestParams._fields, (
     GenTestParams(
-        desc='Hello, world!', next_version=1, ext=None, date=None,
-        fmt='v{next_version:02d}_{date:YYYY-MM-DD-HH-mm-ss}_{desc}_{keyspace}',
+        desc='Hello, world!',
+        next_version=1,
+        format=None,
+        date=None,
+        name_fmt=('v{next_version:02d}_{date:YYYY-MM-DD-HH-mm-ss}_{desc}_'
+                  '{keyspace}'),
         result='v01_2017-01-01-00-00-00_Hello_world__test.cql'),
     GenTestParams(
-        desc='Hello,    world!  ', next_version=2, ext='.py', date=None,
-        fmt='v{next_version:02d}_{date:YYYY-MM-DD-HH-mm-ss}_{desc}_{keyspace}',
+        desc='Hello,    world!  ',
+        next_version=2,
+        format=Format.PYTHON,
+        date=None,
+        name_fmt=('v{next_version:02d}_{date:YYYY-MM-DD-HH-mm-ss}_{desc}_'
+                  '{keyspace}'),
         result='v02_2017-01-01-00-00-00_Hello_world__test.py'),
     GenTestParams(
-        desc='', next_version=5, ext='.py', date=arrow.get(2017, 1, 2, 0, 0, 1),
-        fmt='v{date:YYYYMMDDHHmmss}',
+        desc='',
+        next_version=5,
+        format=Format.PYTHON,
+        date=arrow.get(2017, 1, 2, 0, 0, 1),
+        name_fmt='v{date:YYYYMMDDHHmmss}',
         result='v20170102000001.py')
 ))
-def test_generate(migration_config_data, tmpdir, desc, next_version, fmt, ext,
-                  date, result):
-    migration_config_data['new_migration_name'] = fmt
+def test_generate(migration_config_data, tmpdir, desc, next_version, name_fmt,
+                  format, date, result):
+    migration_config_data['new_migration_name'] = name_fmt
     migration_config_data['new_migration_text'] = '{full_desc}'
     config = MigrationConfig(migration_config_data, str(tmpdir))
 
@@ -83,7 +95,7 @@ def test_generate(migration_config_data, tmpdir, desc, next_version, fmt, ext,
             patch('arrow.utcnow', return_value=now), \
             patch.object(config, 'next_version', return_value=next_version):
 
-        migration = Migration.generate(config, desc, date=date, ext=ext)
+        migration = Migration.generate(config, desc, date=date, format=format)
         assert migration.name == result
         assert migration.content == desc + '\n'
         assert migration.path == \

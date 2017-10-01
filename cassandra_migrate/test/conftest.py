@@ -4,7 +4,7 @@ from builtins import bytes
 import os.path
 
 import pytest
-from cassandra_migrate import Migration
+from cassandra_migrate.migration import Migration, Format
 
 
 @pytest.fixture
@@ -30,6 +30,8 @@ def make_migration(path):
     content = 'abc'
     sha256_digest = bytes.fromhex(
         'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad')
+    _, ext = os.path.splitext(path)
+    format = Format(ext)
 
     return Migration(name=os.path.basename(path), path=os.path.abspath(path),
-                     content=content, checksum=sha256_digest)
+                     content=content, checksum=sha256_digest, format=format)

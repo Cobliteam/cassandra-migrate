@@ -17,7 +17,8 @@ setup(name='cassandra-migrate',
           'future',
           'pyyaml',
           'arrow',
-          'tabulate'
+          'tabulate',
+          "enum34; python_version < '3.4'"
       ],
       entry_points={
           'console_scripts': ['cassandra-migrate=cassandra_migrate.cli:main']
