@@ -1,4 +1,3 @@
-import re
 from builtins import str, bytes
 
 try:
