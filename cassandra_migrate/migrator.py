@@ -1,7 +1,7 @@
 # encoding: utf-8
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
+from __future__ import \
+    absolute_import, division, print_function, unicode_literals
 from builtins import str
 from future.moves.itertools import zip_longest
 
@@ -11,14 +11,15 @@ import uuid
 import arrow
 import codecs
 from cassandra import ConsistencyLevel
-from cassandra.auth import PlainTextAuthProvider
 from cassandra.cluster import Cluster
 from tabulate import tabulate
-from cassandra_migrate.migration import Migration
-from cassandra_migrate.error import FailedMigration, ConcurrentMigration, \
-    InconsistentState, UnknownMigration
+from cassandra_migrate.migration import Migration, Format
+from cassandra_migrate.error import \
+    ConfigError, FailedMigration,ConcurrentMigration, InconsistentState, \
+    UnknownMigration
 from cassandra_migrate.cql import CqlSplitter
 from cassandra_migrate.util import cassandra_ddl_repr
+
 
 CREATE_MIGRATIONS_TABLE = """
 CREATE TABLE {keyspace}.{table} (
@@ -71,24 +72,58 @@ class Migrator(object):
     - port: connection port
     """
 
-    def __init__(self, config, profile='dev', hosts=['127.0.0.1'], port=9042,
-                 user=None, password=None):
-        self.config = config
+    _MIGRATOR_DEFAULT_VALUE = object()
+
+    @classmethod
+
+
+    def get_profile_by_name(self, name):
+        try:
+            return self.config.profiles[name]
+        except KeyError:
+            raise ConfigError('Unknown profile: {}'.format(name))
+
+    def _get_profile_option(self, name, overrides,
+                            default=_MIGRATOR_DEFAULT_VALUE):
+        try:
+            return overrides[name]
+        except KeyError:
+            pass
+        try:
+            return self.profile[name]
+        except KeyError:
+            pass
 
         try:
-            self.current_profile = self.config.profiles[profile]
+            return self.config.profile_defaults[name]
         except KeyError:
-            raise ValueError("Invalid profile name '{}'".format(profile))
+            if default is not self._MIGRATOR_DEFAULT_VALUE:
+                return default
 
-        if user:
-            auth_provider = PlainTextAuthProvider(user, password)
-        else:
-            auth_provider = None
+        raise ConfigError('Missing mandatory profile option: {}'.format(name))
 
-        self.cluster = Cluster(
+    def _make_cluster(self, **kwargs):
+        assert self.config
+        assert self.profile
+
+
+        hosts = hosts or self.profile.hosts or self.config.defaults.port
+        if not hosts:
+            raise ConfigError('No hosts configured')
+        port = port or self.profile.port
+
+
+        return Cluster(
             contact_points=hosts,
             port=port,
-            auth_provider=auth_provider,
+            auth_provider=self.get_auth_provider(user, password))
+
+    def __init__(self, config, profile='dev', hosts=None, port=None,
+                 user=None, password=None):
+        self.config = config
+        self.profile = self.get_profile_by_name(profile)
+        self.cluster = self._make_cluster(
+            hosts, port, user, password,
             max_schema_agreement_wait=300,
             control_connection_timeout=10,
             connect_timeout=30)

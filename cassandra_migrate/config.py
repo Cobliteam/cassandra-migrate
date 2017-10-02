@@ -1,7 +1,7 @@
 # encoding: utf-8
 
-from __future__ import (absolute_import, division,
-                        print_function, unicode_literals)
+from __future__ import \
+    absolute_import, division, unicode_literals
 from builtins import str, open
 
 import re
@@ -11,6 +11,7 @@ from string import Formatter
 import yaml
 from .util import YamlUnicodeLoader, extract_config_entry
 from .migration import Migration
+from .profile import Profile
 
 
 DEFAULT_NEW_MIGRATION_TEXT = """
@@ -64,12 +65,6 @@ class MigrationConfig(object):
         self.keyspace = extract_config_entry(
             data, 'keyspace', type_=str, validate=self.validate_identifier)
 
-        user_profiles = extract_config_entry(
-            data, 'profiles', type_=dict, default={})
-        self.profiles = self.DEFAULT_PROFILES.copy()
-        self.profiles.update((name, self.extract_profile(profile, name))
-                             for name, profile in user_profiles.items())
-
         self.base_path = base_path
 
         migrations_path = extract_config_entry(
@@ -91,6 +86,12 @@ class MigrationConfig(object):
             validate=self.validate_migration_format_string,
             default=DEFAULT_NEW_MIGRATION_TEXT)
 
+        user_profiles = extract_config_entry(
+            data, 'profiles', type_=dict, default={})
+        self.profiles = self.DEFAULT_PROFILES.copy()
+        self.profiles.update((name, Profile.from_dict(self, data))
+                             for name, data in user_profiles.items())
+
         self.migrations = None
 
     def load_migrations(self):
@@ -98,16 +99,6 @@ class MigrationConfig(object):
             raise RuntimeError('Migrations have already been loaded')
 
         self.migrations = Migration.load_all(self.migrations_path)
-
-    def extract_profile(self, data, name):
-        prefix = 'profiles.{}.'.format(name)
-        return {
-            'replication': extract_config_entry(
-                data, 'replication', prefix=prefix, type_=dict),
-            'durable_writes': extract_config_entry(
-                data, 'durable_writes', prefix=prefix, default=True,
-                type_=bool)
-        }
 
     def validate_identifier(self, value):
         if not re.match(r'^[a-zA-Z][a-zA-Z0-9_]*$', value):
