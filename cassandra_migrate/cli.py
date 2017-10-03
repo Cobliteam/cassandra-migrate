@@ -94,6 +94,7 @@ def main():
                          help='Database version to baseline/reset/migrate to')
 
     opts = parser.parse_args()
+    opts.cli_mode = True
     config = MigrationConfig.load(opts.config_file)
 
     if opts.action == 'generate':

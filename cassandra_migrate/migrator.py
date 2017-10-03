@@ -86,7 +86,8 @@ def confirmation_required(func):
     """Asks for the user's confirmation before calling the decorated function"""
     @wraps(func)
     def wrapper(self, opts, *args, **kwargs):
-        if not opts.assume_yes:
+        cli_mode = getattr(opts, 'cli_mode', False)
+        if cli_mode and not opts.assume_yes:
             confirmation = input("The {} operation cannot be undone. "
                                  "Are you sure? [y/N] ".format(func.__name__))
             if not confirmation.lower().startswith("y"):
