@@ -83,7 +83,8 @@ def cassandra_ddl_repr(data):
 
 
 def confirmation_required(func):
-    """Asks for the user's confirmation before calling the decorated function"""
+    """Asks for the user's confirmation before calling the decorated function.
+    This step is ignored when the script is not run from a TTY."""
     @wraps(func)
     def wrapper(self, opts, *args, **kwargs):
         cli_mode = getattr(opts, 'cli_mode', False)

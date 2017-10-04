@@ -94,7 +94,8 @@ def main():
                          help='Database version to baseline/reset/migrate to')
 
     opts = parser.parse_args()
-    opts.cli_mode = True
+    # enable user confirmation if we're running the script from a TTY
+    opts.cli_mode = sys.stdin.isatty()
     config = MigrationConfig.load(opts.config_file)
 
     if opts.action == 'generate':
