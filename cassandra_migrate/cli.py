@@ -51,6 +51,8 @@ def main():
                         'connecting to the cluster. \nIf this option is passed'
                         ' cassandra-migrate will use ssl to connect to the '
                         'cluster.')
+    parser.add_argument('-y', '--assume-yes', action='store_true',
+                        help='Automatically answer "yes" for all questions')
 
     cmds = parser.add_subparsers(help='sub-command help')
 
@@ -92,6 +94,8 @@ def main():
                          help='Database version to baseline/reset/migrate to')
 
     opts = parser.parse_args()
+    # enable user confirmation if we're running the script from a TTY
+    opts.cli_mode = sys.stdin.isatty()
     config = MigrationConfig.load(opts.config_file)
 
     if opts.action == 'generate':
