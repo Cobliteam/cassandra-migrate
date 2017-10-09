@@ -51,6 +51,12 @@ def main():
                         'connecting to the cluster. \nIf this option is passed'
                         ' cassandra-migrate will use ssl to connect to the '
                         'cluster.')
+    parser.add_argument('-k', '--keyfile', default=None,
+                        help='File path of optional keyfile (.key) to be used to'
+                        ' identify the local side of the connection.')
+    parser.add_argument('-crt', '--certfile', default=None,
+                        help='File path of optional certfile (.pem) to be used to'
+                        ' identify the local side of the connection.')
     parser.add_argument('-y', '--assume-yes', action='store_true',
                         help='Automatically answer "yes" for all questions')
 
@@ -109,7 +115,9 @@ def main():
         with Migrator(config=config, profile=opts.profile,
                       hosts=opts.hosts.split(','), port=opts.port,
                       user=opts.user, password=opts.password,
-                      ssl_cert_path=opts.ssl_cert) as migrator:
+                      ssl_cert_path=opts.ssl_cert, 
+                      ssl_keyfile_path=opts.keyfile,
+                      ssl_certfile_path=opts.certfile) as migrator:
             cmd_method = getattr(migrator, opts.action)
             if not callable(cmd_method):
                 print('Error: invalid command', file=sys.stderr)

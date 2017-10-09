@@ -105,7 +105,12 @@ Common parameters:
       -s SSL-CERT, --ssl-cert SSL-CERT
                             File path of ssl certificate to be used for connecting to the cluster.
                             If this option is passed cassandra-migrate will use ssl to connect to the cluster.
-
+      -k KEYFILE, --keyfile KEYFILE
+                            File path of optional keyfile (.key) to be used to identify the local side of the
+                            connection.
+      -crt CERTFILE, --certfile CERTFILE
+                            File path of optional certificate (.pem) to be used to identify the local side of the
+                            connection.
 migrate
 ~~~~~~~
 
