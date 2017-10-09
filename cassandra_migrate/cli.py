@@ -52,10 +52,12 @@ def main():
                         ' cassandra-migrate will use ssl to connect to the '
                         'cluster.')
     parser.add_argument('-k', '--keyfile', default=None,
-                        help='File path of optional keyfile (.key) to be used to'
+                        help='File path of optional keyfile (.key) to be\
+                         used to'
                         ' identify the local side of the connection.')
     parser.add_argument('-crt', '--certfile', default=None,
-                        help='File path of optional certfile (.pem) to be used to'
+                        help='File path of optional certfile (.pem) to be\
+                         used to'
                         ' identify the local side of the connection.')
     parser.add_argument('-y', '--assume-yes', action='store_true',
                         help='Automatically answer "yes" for all questions')
