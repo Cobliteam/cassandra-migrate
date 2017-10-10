@@ -128,9 +128,9 @@ def main():
         with Migrator(config=config, profile=opts.profile,
                       hosts=opts.hosts.split(','), port=opts.port,
                       user=opts.user, password=opts.password,
-                      ssl_cert_path=opts.cassandra_host_cert,
-                      ssl_keyfile_path=opts.migrator_private_key,
-                      ssl_certfile_path=opts.migrator_cert) as migrator:
+                      host_cert_path=opts.cassandra_host_cert,
+                      client_key_path=opts.migrator_private_key,
+                      client_cert_path=opts.migrator_cert) as migrator:
             cmd_method = getattr(migrator, opts.action)
             if not callable(cmd_method):
                 print('Error: invalid command', file=sys.stderr)
