@@ -92,26 +92,39 @@ Common parameters:
 
 ::
 
-      -H HOSTS, --hosts HOSTS
-                            Comma-separated list of contact points
-      -p PORT, --port PORT  Connection port
-      -u USER, --user USER  Connection username
-      -P PASSWORD, --password PASSWORD
-                            Connection password
-      -c CONFIG_FILE, --config-file CONFIG_FILE
-                            Path to configuration file
-      -m PROFILE, --profile PROFILE
-                            Name of keyspace profile to use
-      -s SSL-CERT, --ssl-cert SSL-CERT
-                            File path of ssl certificate to be used for connecting to the cluster.
-                            If this option is passed cassandra-migrate will use ssl to connect to the cluster.
-      -k KEYFILE, --keyfile KEYFILE
-                            File path of optional keyfile (.key) to be used to identify the local side of the
-                            connection.
-      -crt CERTFILE, --certfile CERTFILE
-                            File path of optional certificate (.pem) to be used to identify the local side of the
-                            connection.
-migrate
+    -H HOSTS, --hosts HOSTS
+                          Comma-separated list of contact points
+    -p PORT, --port PORT  Connection port
+    -u USER, --user USER  Connection username
+    -P PASSWORD, --password PASSWORD
+                          Connection password
+    -c CONFIG_FILE, --config-file CONFIG_FILE
+                          Path to configuration file
+    -m PROFILE, --profile PROFILE
+                          Name of keyspace profile to use
+    -s CASSANDRA_HOST_CERT, --cassandra-host-cert CASSANDRA_HOST_CERT
+                          File path of .pem or .crt containing certificate of
+                          the cassandra host you are connecting to (or the
+                          certificate of the CA that signed the host
+                          certificate). If this option is provided, cassandra-
+                          migrate will use ssl to connect to the cluster. If
+                          this option is not provided, the -k and -crt options
+                          will be ignored.
+    -k MIGRATOR_HOST_PRIVATE_KEY, --migrator-private-key MIGRATOR_HOST_PRIVATE_KEY
+                          File path of the .key file containing the private key
+                          of the host on which the cassandra-migrate command is
+                          run. This option must be used in conjuction with the
+                          -crt option. This option is ignored unless the -s
+                          option is provided.
+    -crt MIGRATOR_HOST_CERT, --migrator-cert MIGRATOR_HOST_CERT
+                          File path of the .crt file containing the public
+                          certificate of the host on which the cassandra-migrate
+                          command is run. This certificate (or the CA that
+                          signed it) must be trusted by the cassandra host that
+                          migrations are run against. This option must be used
+                          in conjuction with the -k option. This option is
+                          ignored unless the -s option is provided.
+    -y, --assume-yes      Automatically answer "yes" for all questionsmigrate
 ~~~~~~~
 
 Advances a database to the latest (or chosen) version of migrations.

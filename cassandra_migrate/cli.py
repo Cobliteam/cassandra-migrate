@@ -46,19 +46,30 @@ def main():
                         help='Path to configuration file')
     parser.add_argument('-m', '--profile', default='dev',
                         help='Name of keyspace profile to use')
-    parser.add_argument('-s', '--ssl-cert', default=None,
-                        help='File path of ssl certificate to be used for '
-                        'connecting to the cluster. \nIf this option is passed'
-                        ' cassandra-migrate will use ssl to connect to the '
-                        'cluster.')
-    parser.add_argument('-k', '--keyfile', default=None,
-                        help='File path of optional keyfile (.key) to be\
-                         used to'
-                        ' identify the local side of the connection.')
-    parser.add_argument('-crt', '--certfile', default=None,
-                        help='File path of optional certfile (.pem) to be\
-                         used to'
-                        ' identify the local side of the connection.')
+    parser.add_argument('-s', '--cassandra-host-cert', default=None,
+                        help="""
+                        File path of .pem or .crt containing certificate of the
+                        cassandra host you are connecting to (or the
+                        certificate of the CA that signed the host certificate).
+                         If this option is provided, cassandra-migrate will use
+                        ssl to connect to the cluster. If this option is not
+                        provided, the -k and -crt options will be ignored. """)
+    parser.add_argument('-k', '--migrator-private-key', default=None,
+                        help="""
+                        File path of the .key file containing the private key
+                        of the host on which the cassandra-migrate command is
+                        run. This option must be used in conjuction with the
+                        -crt option. This option is ignored unless the -s
+                        option is provided.""")
+    parser.add_argument('-crt', '--migrator-cert', default=None,
+                        help="""
+                        File path of the .crt file containing the public
+                        certificate of the host on which the cassandra-migrate
+                        command is run. This certificate (or the CA that signed
+                        it) must be trusted by the cassandra host that
+                        migrations are run against. This option must be used in
+                        conjuction with the -k option. This option is ignored
+                        unless the -s option is provided.""")
     parser.add_argument('-y', '--assume-yes', action='store_true',
                         help='Automatically answer "yes" for all questions')
 
@@ -117,9 +128,9 @@ def main():
         with Migrator(config=config, profile=opts.profile,
                       hosts=opts.hosts.split(','), port=opts.port,
                       user=opts.user, password=opts.password,
-                      ssl_cert_path=opts.ssl_cert,
-                      ssl_keyfile_path=opts.keyfile,
-                      ssl_certfile_path=opts.certfile) as migrator:
+                      ssl_cert_path=opts.cassandra_host_cert,
+                      ssl_keyfile_path=opts.migrator_private_key,
+                      ssl_certfile_path=opts.migrator_cert) as migrator:
             cmd_method = getattr(migrator, opts.action)
             if not callable(cmd_method):
                 print('Error: invalid command', file=sys.stderr)
