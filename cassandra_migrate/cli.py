@@ -117,7 +117,7 @@ def main():
         with Migrator(config=config, profile=opts.profile,
                       hosts=opts.hosts.split(','), port=opts.port,
                       user=opts.user, password=opts.password,
-                      ssl_cert_path=opts.ssl_cert, 
+                      ssl_cert_path=opts.ssl_cert,
                       ssl_keyfile_path=opts.keyfile,
                       ssl_certfile_path=opts.certfile) as migrator:
             cmd_method = getattr(migrator, opts.action)

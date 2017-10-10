@@ -128,8 +128,8 @@ class Migrator(object):
 
         if ssl_cert_path:
             ssl_options = self._build_ssl_options(
-                ssl_cert_path, 
-                ssl_keyfile_path, 
+                ssl_cert_path,
+                ssl_keyfile_path,
                 ssl_certfile_path)
         else:
             ssl_options = None
@@ -157,11 +157,8 @@ class Migrator(object):
             self.cluster.shutdown()
             self.cluster = None
 
-    def _build_ssl_options(
-        self, 
-        ssl_cert_path, 
-        ssl_keyfile_path, 
-        ssl_certfile_path):
+    def _build_ssl_options(self, ssl_cert_path, ssl_keyfile_path,
+                           ssl_certfile_path):
         return {
             'ca_certs': ssl_cert_path,
             'certfile': ssl_certfile_path,
