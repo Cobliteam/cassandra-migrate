@@ -46,22 +46,22 @@ def main():
                         help='Path to configuration file')
     parser.add_argument('-m', '--profile', default='dev',
                         help='Name of keyspace profile to use')
-    parser.add_argument('-s', '--cassandra-host-cert', default=None,
+    parser.add_argument('-s', '--ssl-host-cert', default=None,
                         help="""
                         File path of .pem or .crt containing certificate of the
                         cassandra host you are connecting to (or the
                         certificate of the CA that signed the host certificate).
                          If this option is provided, cassandra-migrate will use
                         ssl to connect to the cluster. If this option is not
-                        provided, the -k and -crt options will be ignored. """)
-    parser.add_argument('-k', '--migrator-private-key', default=None,
+                        provided, the -k and -t options will be ignored. """)
+    parser.add_argument('-k', '--ssl-client-private-key', default=None,
                         help="""
                         File path of the .key file containing the private key
                         of the host on which the cassandra-migrate command is
                         run. This option must be used in conjuction with the
-                        -crt option. This option is ignored unless the -s
+                        -t option. This option is ignored unless the -s
                         option is provided.""")
-    parser.add_argument('-crt', '--migrator-cert', default=None,
+    parser.add_argument('-t', '--ssl-client-cert', default=None,
                         help="""
                         File path of the .crt file containing the public
                         certificate of the host on which the cassandra-migrate
@@ -128,9 +128,9 @@ def main():
         with Migrator(config=config, profile=opts.profile,
                       hosts=opts.hosts.split(','), port=opts.port,
                       user=opts.user, password=opts.password,
-                      host_cert_path=opts.cassandra_host_cert,
-                      client_key_path=opts.migrator_private_key,
-                      client_cert_path=opts.migrator_cert) as migrator:
+                      host_cert_path=opts.ssl_host_cert,
+                      client_key_path=opts.ssl_client_private_key,
+                      client_cert_path=opts.ssl_client_cert) as migrator:
             cmd_method = getattr(migrator, opts.action)
             if not callable(cmd_method):
                 print('Error: invalid command', file=sys.stderr)
