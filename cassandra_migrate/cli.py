@@ -46,7 +46,7 @@ def main():
                         help='Path to configuration file')
     parser.add_argument('-m', '--profile', default='dev',
                         help='Name of keyspace profile to use')
-    parser.add_argument('-s', '--ssl-host-cert', default=None,
+    parser.add_argument('-s', '--ssl-cert', default=None,
                         help="""
                         File path of .pem or .crt containing certificate of the
                         cassandra host you are connecting to (or the
@@ -128,7 +128,7 @@ def main():
         with Migrator(config=config, profile=opts.profile,
                       hosts=opts.hosts.split(','), port=opts.port,
                       user=opts.user, password=opts.password,
-                      host_cert_path=opts.ssl_host_cert,
+                      host_cert_path=opts.ssl_cert,
                       client_key_path=opts.ssl_client_private_key,
                       client_cert_path=opts.ssl_client_cert) as migrator:
             cmd_method = getattr(migrator, opts.action)

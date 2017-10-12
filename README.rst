@@ -102,7 +102,7 @@ Common parameters:
                         Path to configuration file
   -m PROFILE, --profile PROFILE
                         Name of keyspace profile to use
-  -s SSL_HOST_CERT, --ssl-host-cert SSL_HOST_CERT
+  -s SSL_CERT, --ssl-cert SSL_CERT
                         File path of .pem or .crt containing certificate of
                         the cassandra host you are connecting to (or the
                         certificate of the CA that signed the host
