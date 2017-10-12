@@ -112,7 +112,8 @@ class Migrator(object):
     logger = logging.getLogger("Migrator")
 
     def __init__(self, config, profile='dev', hosts=['127.0.0.1'], port=9042,
-                 user=None, password=None, ssl_cert_path=None):
+                 user=None, password=None, host_cert_path=None,
+                 client_key_path=None, client_cert_path=None):
         self.config = config
 
         try:
@@ -125,8 +126,11 @@ class Migrator(object):
         else:
             auth_provider = None
 
-        if ssl_cert_path:
-            ssl_options = self._build_ssl_options(ssl_cert_path)
+        if host_cert_path:
+            ssl_options = self._build_ssl_options(
+                host_cert_path,
+                client_key_path,
+                client_cert_path)
         else:
             ssl_options = None
 
@@ -153,9 +157,12 @@ class Migrator(object):
             self.cluster.shutdown()
             self.cluster = None
 
-    def _build_ssl_options(self, ssl_cert_path):
+    def _build_ssl_options(self, host_cert_path, client_key_path,
+                           client_cert_path):
         return {
-            'ca_certs': ssl_cert_path
+            'ca_certs': host_cert_path,
+            'certfile': client_cert_path,
+            'keyfile': client_key_path
         }
 
     def _check_cluster(self):

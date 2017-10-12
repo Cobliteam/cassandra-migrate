@@ -47,10 +47,29 @@ def main():
     parser.add_argument('-m', '--profile', default='dev',
                         help='Name of keyspace profile to use')
     parser.add_argument('-s', '--ssl-cert', default=None,
-                        help='File path of ssl certificate to be used for '
-                        'connecting to the cluster. \nIf this option is passed'
-                        ' cassandra-migrate will use ssl to connect to the '
-                        'cluster.')
+                        help="""
+                        File path of .pem or .crt containing certificate of the
+                        cassandra host you are connecting to (or the
+                        certificate of the CA that signed the host certificate).
+                         If this option is provided, cassandra-migrate will use
+                        ssl to connect to the cluster. If this option is not
+                        provided, the -k and -t options will be ignored. """)
+    parser.add_argument('-k', '--ssl-client-private-key', default=None,
+                        help="""
+                        File path of the .key file containing the private key
+                        of the host on which the cassandra-migrate command is
+                        run. This option must be used in conjuction with the
+                        -t option. This option is ignored unless the -s
+                        option is provided.""")
+    parser.add_argument('-t', '--ssl-client-cert', default=None,
+                        help="""
+                        File path of the .crt file containing the public
+                        certificate of the host on which the cassandra-migrate
+                        command is run. This certificate (or the CA that signed
+                        it) must be trusted by the cassandra host that
+                        migrations are run against. This option must be used in
+                        conjuction with the -k option. This option is ignored
+                        unless the -s option is provided.""")
     parser.add_argument('-y', '--assume-yes', action='store_true',
                         help='Automatically answer "yes" for all questions')
 
@@ -109,7 +128,9 @@ def main():
         with Migrator(config=config, profile=opts.profile,
                       hosts=opts.hosts.split(','), port=opts.port,
                       user=opts.user, password=opts.password,
-                      ssl_cert_path=opts.ssl_cert) as migrator:
+                      host_cert_path=opts.ssl_cert,
+                      client_key_path=opts.ssl_client_private_key,
+                      client_cert_path=opts.ssl_client_cert) as migrator:
             cmd_method = getattr(migrator, opts.action)
             if not callable(cmd_method):
                 print('Error: invalid command', file=sys.stderr)
