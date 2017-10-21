@@ -37,7 +37,7 @@ class CqlSplitter(object):
                 (r"\/\*.+?\*\/",               h(cls.BLOCK_COMMENT)),
                 (r'"(?:[^"\\]|\\.)*"',         h(cls.STRING)),
                 (r"'(?:[^'\\]|\\.)*'",         h(cls.STRING)),
-                (r"\$\$(?:[^\$\\]|\\.)*\$\$'", h(cls.STRING)),
+                (r"\$\$(?:[^\$\\]|\\.)*\$\$",  h(cls.STRING)),
                 (r";",                         h(cls.SEMICOLON)),
                 (r"\s+",                       h(cls.WHITESPACE)),
                 (r".",                         h(cls.OTHER))
