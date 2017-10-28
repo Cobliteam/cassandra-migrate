@@ -30,7 +30,11 @@ from cassandra_migrate.cql import CqlSplitter
      CREATE TABLE 'hello;';
      CREATE TABLE "world;"
      ''',
-     ["CREATE TABLE 'hello;'", 'CREATE TABLE "world;"'])
+     ["CREATE TABLE 'hello;'", 'CREATE TABLE "world;"']),
+    # Double-dollar-sign quoted strings, as reported in PR #24
+    ('INSERT INTO test (test) VALUES '
+     '($$Pesky semicolon here ;Hello$$);',
+     ["INSERT INTO test (test) VALUES ($$Pesky semicolon here ;Hello$$)"])
 ])
 def test_cql_split(cql, statements):
     result = CqlSplitter.split(cql.strip())
