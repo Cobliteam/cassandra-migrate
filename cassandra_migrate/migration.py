@@ -14,7 +14,7 @@ from collections import namedtuple
 import arrow
 
 
-class Migration(namedtuple('Migration', 'path name content checksum')):
+class Migration(namedtuple('Migration', 'path name filetype content checksum')):
     """
     Data class representing the specification of a migration
 
@@ -47,8 +47,11 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
             content = fp.read()
 
         checksum = bytes(hashlib.sha256(content.encode('utf-8')).digest())
-        return cls(os.path.abspath(path), os.path.basename(path), content,
-                   checksum)
+        # Should use enum but python3 requires importing an extra library
+        filetype = re.findall(r"\.(py)$", os.path.abspath(path))
+
+        return cls(os.path.abspath(path), os.path.basename(path),
+                   filetype, content, checksum)
 
     @classmethod
     def sort_paths(cls, paths):
@@ -67,7 +70,7 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
         return list(map(cls.load, cls.sort_paths(paths)))
 
     @classmethod
-    def generate(cls, config, description):
+    def generate(cls, config, description, output):
         fname_fmt = config.new_migration_name
         text_fmt = config.new_migration_text
 
@@ -83,14 +86,29 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
             'keyspace': config.keyspace
         }
 
-        fname = fname_fmt.format(**format_args) + '.cql'
+        file_extension = ".cql"
+        file_content = cls._get_cql_template(text_fmt, format_args)
+
+        if output == "python":
+            file_extension = ".py"
+            file_content = "print('Hello World')"
+
+        fname = fname_fmt.format(**format_args) + file_extension
         new_path = os.path.join(config.migrations_path, fname)
 
-        with io.open(new_path, 'w', encoding='utf-8') as f:
-            new_text = text_fmt.format(**format_args)
-            f.write(new_text + '\n')
+        cls._create_file(new_path, file_content)
 
         return new_path
+
+    @classmethod
+    def _create_file(cls, path, content):
+        """Creates physical file"""
+        with io.open(path, 'w', encoding='utf-8') as f:
+            f.write(content + '\n')
+
+    @classmethod
+    def _get_cql_template(cls, text_fmt, formatted_text):
+        return text_fmt.format(**formatted_text)
 
     def __str__(self):
         return 'Migration("{}")'.format(self.name)
