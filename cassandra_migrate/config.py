@@ -69,7 +69,8 @@ class MigrationConfig(object):
         migrations_path = _assert_type(data, 'migrations_path', str)
         self.migrations_path = os.path.join(base_path, migrations_path)
 
-        self.migrations = Migration.glob_all(self.migrations_path, '*.cql')
+        self.migrations = Migration.glob_all(
+            self.migrations_path, '*.cql', '*.py')
 
         self.migrations_table = _assert_type(data, 'migrations_table', str,
                                              default='database_migrations')

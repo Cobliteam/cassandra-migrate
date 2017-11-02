@@ -8,6 +8,8 @@ import re
 import logging
 import uuid
 import codecs
+import sys
+from subprocess import check_call
 from functools import wraps
 from future.moves.itertools import zip_longest
 
@@ -384,12 +386,47 @@ class Migrator(object):
 
         return version_id
 
-    def _apply_migration(self, version, migration, skip=False):
+    def _apply_cql_migration(self, version, migration):
         """
-        Persist and apply a migration
+        Persist and apply a cql migration
 
         First create an in-progress version entry, apply the script, then
         finalize the entry as succeeded, failed or skipped.
+        """
+
+        self.logger.info('Applying cql migration')
+
+        statements = CqlSplitter.split(migration.content)
+
+        try:
+            if statements:
+                self.logger.info('Executing migration -'
+                                 '{} CQL statement'.format(len(statements)))
+
+            for statement in statements:
+                self.session.execute(statement)
+        except Exception:
+            self.logger.exception('Failed to execute migration')
+            raise FailedMigration(version, migration.name)
+
+    def _apply_python_migration(self, version, migration):
+        """
+        Persist and apply a python migration
+
+        First create an in-progress version entry, apply the script, then
+        finalize the entry as succeeded, failed or skipped.
+        """
+        self.logger.info('Applying python script')
+
+        try:
+            check_call([sys.executable, migration.path])
+        except Exception:
+            self.logger.exception('Failed to execute script')
+            raise FailedMigration(version, migration.name)
+
+    def _apply_migration(self, version, migration, skip=False):
+        """
+        Persist and apply a migration
 
         When `skip` is True, do everything but actually run the script, for
         example, when baselining instead of migrating.
@@ -397,29 +434,20 @@ class Migrator(object):
 
         self.logger.info('Advancing to version {}'.format(version))
 
-        if skip:
-            statements = []
-            self.logger.info('Migration is marked for skipping, '
-                             'not actually running script')
-        else:
-            statements = CqlSplitter.split(migration.content)
-
         version_uuid = self._create_version(version, migration)
         new_state = Migration.State.FAILED
 
         result = None
+
         try:
-            if statements:
-                self.logger.info('Executing migration - '
-                                 '{} CQL statements'.format(len(statements)))
-
-            # Set default keyspace so migrations don't need to refer to it
-            # manually
-            # Fixes https://github.com/Cobliteam/cassandra-migrate/issues/5
-            self.session.execute('USE {};'.format(self.config.keyspace))
-
-            for statement in statements:
-                self.session.execute(statement)
+            if skip:
+                self.logger.info('Migration is marked for skipping, '
+                                 'not actually running script')
+            else:
+                if migration.filetype:
+                    self._apply_python_migration(version, migration)
+                else:
+                    self._apply_cql_migration(version, migration)
         except Exception:
             self.logger.exception('Failed to execute migration')
             raise FailedMigration(version, migration.name)
@@ -498,6 +526,8 @@ class Migrator(object):
         last_version, cur_versions, pending_migrations = \
             self._verify_migrations(self.config.migrations,
                                     ignore_failed=opts.force)
+
+        print("Running {0} migrations", len(self.config.migrations))
 
         self._advance(pending_migrations, opts.db_version, cur_versions,
                       force=opts.force)
