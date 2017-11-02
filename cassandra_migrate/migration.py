@@ -72,7 +72,8 @@ class Migration(namedtuple('Migration', 'path name filetype content checksum')):
     @classmethod
     def generate(cls, config, description, output):
         fname_fmt = config.new_migration_name
-        text_fmt = config.new_migration_text
+        text_cql_fmt = config.new_cql_migration_text
+        text_py_fmt = config.new_python_migration_text
 
         clean_desc = re.sub(r'[\W\s]+', '_', description)
         next_version = len(config.migrations) + 1
@@ -87,11 +88,11 @@ class Migration(namedtuple('Migration', 'path name filetype content checksum')):
         }
 
         file_extension = ".cql"
-        file_content = cls._get_cql_template(text_fmt, format_args)
+        file_content = text_cql_fmt.format(**format_args)
 
         if output == "python":
             file_extension = ".py"
-            file_content = "print('Hello World')"
+            file_content = text_py_fmt.format(**format_args)
 
         fname = fname_fmt.format(**format_args) + file_extension
         new_path = os.path.join(config.migrations_path, fname)
@@ -105,10 +106,6 @@ class Migration(namedtuple('Migration', 'path name filetype content checksum')):
         """Creates physical file"""
         with io.open(path, 'w', encoding='utf-8') as f:
             f.write(content + '\n')
-
-    @classmethod
-    def _get_cql_template(cls, text_fmt, formatted_text):
-        return text_fmt.format(**formatted_text)
 
     def __str__(self):
         return 'Migration("{}")'.format(self.name)

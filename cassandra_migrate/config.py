@@ -17,6 +17,20 @@ DEFAULT_NEW_MIGRATION_TEXT = """
    {full_desc} */
 """.lstrip()
 
+DEFAULT_NEW_CQL_MIGRATION_TEXT = """
+/* Cassandra migration for keyspace {keyspace}.
+   Version {next_version} - {date}
+
+   {full_desc} */
+""".lstrip()
+
+DEFAULT_NEW_PYTHON_MIGRATION_TEXT = """
+# Cassandra migration for keyspace {keyspace}.
+# Version {next_version} - {date}
+# {full_desc}
+print("Your code here...")
+""".lstrip()
+
 
 def _assert_type(data, key, tpe, default=None):
     """Extract and verify if a key in a dictionary has a given type"""
@@ -82,6 +96,14 @@ class MigrationConfig(object):
         self.new_migration_text = _assert_type(
             data, 'new_migration_text', str,
             default=DEFAULT_NEW_MIGRATION_TEXT)
+
+        self.new_cql_migration_text = _assert_type(
+            data, 'new_cql_migration_text', str,
+            default=DEFAULT_NEW_CQL_MIGRATION_TEXT)
+
+        self.new_python_migration_text = _assert_type(
+            data, 'new_python_migration_text', str,
+            default=DEFAULT_NEW_PYTHON_MIGRATION_TEXT)
 
     @classmethod
     def load(cls, path):
