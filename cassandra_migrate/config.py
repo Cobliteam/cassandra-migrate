@@ -28,7 +28,13 @@ DEFAULT_NEW_PYTHON_MIGRATION_TEXT = """
 # Cassandra migration for keyspace {keyspace}.
 # Version {next_version} - {date}
 # {full_desc}
-print("Your code here...")
+
+def execute(session):
+    "Main method for your migration. Do not rename this method."
+
+    print("Implement your code here =======")
+    print("Cassandra session: {0}", session)
+
 """.lstrip()
 
 

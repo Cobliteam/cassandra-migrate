@@ -14,7 +14,8 @@ from collections import namedtuple
 import arrow
 
 
-class Migration(namedtuple('Migration', 'path name filetype content checksum')):
+class Migration(namedtuple('Migration',
+                           'path name is_python content checksum')):
     """
     Data class representing the specification of a migration
 
@@ -48,10 +49,12 @@ class Migration(namedtuple('Migration', 'path name filetype content checksum')):
 
         checksum = bytes(hashlib.sha256(content.encode('utf-8')).digest())
         # Should use enum but python3 requires importing an extra library
-        filetype = re.findall(r"\.(py)$", os.path.abspath(path))
+        # Reconsidering the use of enums. This is a binary decision.
+        # Boolean will work just fine.
+        is_python = bool(re.findall(r"\.(py)$", os.path.abspath(path)))
 
         return cls(os.path.abspath(path), os.path.basename(path),
-                   filetype, content, checksum)
+                   is_python, content, checksum)
 
     @classmethod
     def sort_paths(cls, paths):
