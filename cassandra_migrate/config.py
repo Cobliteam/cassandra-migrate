@@ -32,8 +32,7 @@ DEFAULT_NEW_PYTHON_MIGRATION_TEXT = """
 def execute(session):
     "Main method for your migration. Do not rename this method."
 
-    print("Implement your code here =======")
-    print("Cassandra session: {0}", session)
+    print("Cassandra session: ", session)
 
 """.lstrip()
 

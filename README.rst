@@ -76,7 +76,10 @@ For example
       # Version {next_version} - {date}
       # {full_desc} */
 
-      print("Implement your python script here")
+      def execute(session):
+          "Main method for your migration. Do not rename this method."
+
+          print("Cassandra session: ", session)
     
 
 ``new_migration_name`` is a new-style Python format string, which can use the
