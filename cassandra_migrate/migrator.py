@@ -9,7 +9,7 @@ import logging
 import uuid
 import codecs
 import sys
-from subprocess import check_call
+import importlib
 from functools import wraps
 from future.moves.itertools import zip_longest
 
@@ -178,6 +178,12 @@ class Migrator(object):
             s.default_consistency_level = ConsistencyLevel.ALL
             s.default_serial_consistency_level = ConsistencyLevel.SERIAL
             s.default_timeout = 120
+
+    def get_session(self):
+        """Returns a Cassandra session"""
+        if self._session is None:
+            self._init_session()
+        return "Session should be returned here."
 
     @property
     def session(self):
@@ -419,7 +425,9 @@ class Migrator(object):
         self.logger.info('Applying python script')
 
         try:
-            check_call([sys.executable, migration.path])
+            mod = re.search(r'[^/]*(?=[.][a-zA-Z]+$)', migration.path)[0]
+            migration_script = importlib.import_module(mod)
+            migration_script.execute(self._session)
         except Exception:
             self.logger.exception('Failed to execute script')
             raise FailedMigration(version, migration.name)
@@ -436,6 +444,7 @@ class Migrator(object):
 
         version_uuid = self._create_version(version, migration)
         new_state = Migration.State.FAILED
+        sys.path.append(self.config.migrations_path)
 
         result = None
 
@@ -444,7 +453,7 @@ class Migrator(object):
                 self.logger.info('Migration is marked for skipping, '
                                  'not actually running script')
             else:
-                if migration.filetype:
+                if migration.is_python:
                     self._apply_python_migration(version, migration)
                 else:
                     self._apply_cql_migration(version, migration)

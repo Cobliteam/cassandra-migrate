@@ -4,7 +4,3 @@ flake8
 tox
 bumpversion
 twine
-arrow
-pyyaml
-future
-tabulate
