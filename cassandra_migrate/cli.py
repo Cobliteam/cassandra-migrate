@@ -106,6 +106,12 @@ def main():
     genrt.add_argument(
         'description',
         help='Brief description of the new migration')
+    genrt.add_argument(
+        '--python',
+        nargs='?',
+        const='python',
+        default='cql',
+        help='Generates a python script file.')
     genrt.set_defaults(action='generate')
 
     for sub in (bline, reset, mgrat):
@@ -119,7 +125,8 @@ def main():
 
     if opts.action == 'generate':
         new_path = Migration.generate(config=config,
-                                      description=opts.description)
+                                      description=opts.description,
+                                      output=opts.python)
         if sys.stdin.isatty():
             open_file(new_path)
 

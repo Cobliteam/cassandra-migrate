@@ -21,6 +21,7 @@ Unlike other available tools, this one:
 - Verifies stored migrations against configured migrations
 - Stores content, checksum, date and state of every migration
 - Supports deploying with different keyspace configurations for different environments
+- Supports cql and python scripts migrations
 
 Configuration
 -------------
@@ -38,10 +39,13 @@ Databases are configured through YAML files. For example:
     migrations_path: ./migrations
 
 Where the ``migrations`` folder (relative to the config file). contains
-``.cql`` files. The files are loaded in lexical order.
+``.cql`` or ``.py`` files. The files are loaded in lexical order.
 
-The default convention is to name them in the form: ``v001_my_migration.cql``.
+The default convention is to name them in the form: ``v001_my_migration.{cql | py}``.
 A custom naming scheme can be specified with the ``new_migration_name`` option.
+
+Note: new_migration_text is deprecated. The specific file type option should be used instead.
+
 For example
 
 .. code:: yaml
@@ -59,6 +63,25 @@ For example
 
          {full_desc} */
 
+    # Custom initial migration content for cql scripts
+    new_cql_migration_text: |
+      /* Cassandra migration for keyspace {keyspace}.
+         Version {next_version} - {date}
+
+         {full_desc} */
+   
+    # Custom initial migration content for python scripts
+    new_python_migration_text: |
+      # Cassandra migration for keyspace {keyspace}.
+      # Version {next_version} - {date}
+      # {full_desc} */
+
+      def execute(session):
+          "Main method for your migration. Do not rename this method."
+
+          print("Cassandra session: ", session)
+    
+
 ``new_migration_name`` is a new-style Python format string, which can use the
 following parameters:
 
@@ -75,7 +98,13 @@ The format string should *not* contain the ``.cql`` extension, as it is added
 automatically.
 
 ``new_migraton_text`` is handled with the same rules outline above, but defines
-the initial content of the migration file.
+the initial content of the migration file. Default to CQL scripts.
+
+``new_cql_migraton_text`` is handled with the same rules outline above, but defines
+the initial content of the CQL migration file.
+
+``new_python_migraton_text`` is handled with the same rules outline above, but defines
+the initial content of the python migration file.
 
 Profiles
 --------
@@ -208,6 +237,8 @@ template, in the configured ``migrations_path``.
 When running the command interactively, the file will be opened by the default
 editor. The newly-generated file name will be printed to stdout.
 
+For python scripts, specify --python in your arguments list.
+
 See the configuration section for details on migration naming.
 
 Example:
@@ -216,11 +247,12 @@ Example:
 
     cassandra-migrate generate "My migration description"
 
+    cassandra-migrate generate "My migration description" --python
+
 TODO
 ----
 
 -  Ask for confirmation before applying dangerous commands
--  Support Python migrations (instead of just CQL)
 
 License (MIT)
 -------------

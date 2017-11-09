@@ -14,7 +14,8 @@ from collections import namedtuple
 import arrow
 
 
-class Migration(namedtuple('Migration', 'path name content checksum')):
+class Migration(namedtuple('Migration',
+                           'path name is_python content checksum')):
     """
     Data class representing the specification of a migration
 
@@ -47,8 +48,13 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
             content = fp.read()
 
         checksum = bytes(hashlib.sha256(content.encode('utf-8')).digest())
-        return cls(os.path.abspath(path), os.path.basename(path), content,
-                   checksum)
+        # Should use enum but python3 requires importing an extra library
+        # Reconsidering the use of enums. This is a binary decision.
+        # Boolean will work just fine.
+        is_python = bool(re.findall(r"\.(py)$", os.path.abspath(path)))
+
+        return cls(os.path.abspath(path), os.path.basename(path),
+                   is_python, content, checksum)
 
     @classmethod
     def sort_paths(cls, paths):
@@ -67,9 +73,10 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
         return list(map(cls.load, cls.sort_paths(paths)))
 
     @classmethod
-    def generate(cls, config, description):
+    def generate(cls, config, description, output):
         fname_fmt = config.new_migration_name
-        text_fmt = config.new_migration_text
+        text_cql_fmt = config.new_cql_migration_text
+        text_py_fmt = config.new_python_migration_text
 
         clean_desc = re.sub(r'[\W\s]+', '_', description)
         next_version = len(config.migrations) + 1
@@ -83,14 +90,25 @@ class Migration(namedtuple('Migration', 'path name content checksum')):
             'keyspace': config.keyspace
         }
 
-        fname = fname_fmt.format(**format_args) + '.cql'
+        file_extension = ".cql"
+        file_content = text_cql_fmt.format(**format_args)
+
+        if output == "python":
+            file_extension = ".py"
+            file_content = text_py_fmt.format(**format_args)
+
+        fname = fname_fmt.format(**format_args) + file_extension
         new_path = os.path.join(config.migrations_path, fname)
 
-        with io.open(new_path, 'w', encoding='utf-8') as f:
-            new_text = text_fmt.format(**format_args)
-            f.write(new_text + '\n')
+        cls._create_file(new_path, file_content)
 
         return new_path
+
+    @classmethod
+    def _create_file(cls, path, content):
+        """Creates physical file"""
+        with io.open(path, 'w', encoding='utf-8') as f:
+            f.write(content + '\n')
 
     def __str__(self):
         return 'Migration("{}")'.format(self.name)
