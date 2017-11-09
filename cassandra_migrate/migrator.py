@@ -9,6 +9,7 @@ import logging
 import uuid
 import codecs
 import sys
+import os
 import importlib
 from functools import wraps
 from future.moves.itertools import zip_longest
@@ -178,12 +179,6 @@ class Migrator(object):
             s.default_consistency_level = ConsistencyLevel.ALL
             s.default_serial_consistency_level = ConsistencyLevel.SERIAL
             s.default_timeout = 120
-
-    def get_session(self):
-        """Returns a Cassandra session"""
-        if self._session is None:
-            self._init_session()
-        return "Session should be returned here."
 
     @property
     def session(self):
@@ -425,7 +420,7 @@ class Migrator(object):
         self.logger.info('Applying python script')
 
         try:
-            mod = re.search(r'[^/]*(?=[.][a-zA-Z]+$)', migration.path)[0]
+            mod, _ = os.path.splitext(os.path.basename(migration.path))
             migration_script = importlib.import_module(mod)
             migration_script.execute(self._session)
         except Exception:
