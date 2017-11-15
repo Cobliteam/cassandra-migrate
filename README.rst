@@ -76,8 +76,12 @@ For example
       # Version {next_version} - {date}
       # {full_desc} */
 
-      def execute(session):
-          "Main method for your migration. Do not rename this method."
+      def execute(session, **kwargs):
+          """
+          Main method for your migration. Do not rename this method.
+
+          Raise an exception of any kind to abort the migration.
+          """
 
           print("Cassandra session: ", session)
     
@@ -94,17 +98,18 @@ following parameters:
   be a good starting point.
 - ``keyspace``: name of the configured keyspace.
 
-The format string should *not* contain the ``.cql`` extension, as it is added
-automatically.
+The format string should *not* contain the .cql or .py extensions, as it they
+added automatically.
 
 ``new_migraton_text`` is handled with the same rules outline above, but defines
-the initial content of the migration file. Default to CQL scripts.
+the initial content of the migration file, if the type-specific options below
+ared not set.
 
-``new_cql_migraton_text`` is handled with the same rules outline above, but defines
-the initial content of the CQL migration file.
+``new_cql_migraton_text`` defines the initial content of CQL migration files.
 
-``new_python_migraton_text`` is handled with the same rules outline above, but defines
-the initial content of the python migration file.
+``new_python_migraton_text`` defines the initial content of Python migration
+files.
+
 
 Profiles
 --------
@@ -237,7 +242,7 @@ template, in the configured ``migrations_path``.
 When running the command interactively, the file will be opened by the default
 editor. The newly-generated file name will be printed to stdout.
 
-For python scripts, specify --python in your arguments list.
+To generate a Python script, specify the ``--python`` option.
 
 See the configuration section for details on migration naming.
 
@@ -249,10 +254,6 @@ Example:
 
     cassandra-migrate generate "My migration description" --python
 
-TODO
-----
-
--  Ask for confirmation before applying dangerous commands
 
 License (MIT)
 -------------
