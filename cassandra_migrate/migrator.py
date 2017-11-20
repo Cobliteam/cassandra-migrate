@@ -538,8 +538,6 @@ class Migrator(object):
             self._verify_migrations(self.config.migrations,
                                     ignore_failed=opts.force)
 
-        print("Running {0} migrations", len(self.config.migrations))
-
         self._advance(pending_migrations, opts.db_version, cur_versions,
                       force=opts.force)
 
