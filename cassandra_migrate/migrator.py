@@ -495,6 +495,13 @@ class Migrator(object):
             self._cleanup_previous_versions(cur_versions)
 
         target_version = self._get_target_version(target)
+
+        if migrations:
+            # Set default keyspace so migrations don't need to refer to it
+            # manually
+            # Fixes https://github.com/Cobliteam/cassandra-migrate/issues/5
+            self.session.execute('USE {};'.format(self.config.keyspace))
+
         for version, migration in migrations:
             if version > target_version:
                 break
