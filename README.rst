@@ -76,8 +76,17 @@ For example
       # Version {next_version} - {date}
       # {full_desc} */
 
+<<<<<<< HEAD
       def execute(session):
           "Main method for your migration. Do not rename this method."
+=======
+      def execute(session, **kwargs):
+          """
+          Main method for your migration. Do not rename this method.
+
+          Raise an exception of any kind to abort the migration.
+          """
+>>>>>>> d1c38c6a1d72d8c1e493e56657cd02ada59e5687
 
           print("Cassandra session: ", session)
     
@@ -94,10 +103,11 @@ following parameters:
   be a good starting point.
 - ``keyspace``: name of the configured keyspace.
 
-The format string should *not* contain the ``.cql`` extension, as it is added
-automatically.
+The format string should *not* contain the .cql or .py extensions, as it they
+added automatically.
 
 ``new_migraton_text`` is handled with the same rules outline above, but defines
+<<<<<<< HEAD
 the initial content of the migration file. Default to CQL scripts.
 
 ``new_cql_migraton_text`` is handled with the same rules outline above, but defines
@@ -105,6 +115,16 @@ the initial content of the CQL migration file.
 
 ``new_python_migraton_text`` is handled with the same rules outline above, but defines
 the initial content of the python migration file.
+=======
+the initial content of the migration file, if the type-specific options below
+ared not set.
+
+``new_cql_migraton_text`` defines the initial content of CQL migration files.
+
+``new_python_migraton_text`` defines the initial content of Python migration
+files.
+
+>>>>>>> d1c38c6a1d72d8c1e493e56657cd02ada59e5687
 
 Profiles
 --------
@@ -237,7 +257,11 @@ template, in the configured ``migrations_path``.
 When running the command interactively, the file will be opened by the default
 editor. The newly-generated file name will be printed to stdout.
 
+<<<<<<< HEAD
 For python scripts, specify --python in your arguments list.
+=======
+To generate a Python script, specify the ``--python`` option.
+>>>>>>> d1c38c6a1d72d8c1e493e56657cd02ada59e5687
 
 See the configuration section for details on migration naming.
 
@@ -248,11 +272,15 @@ Example:
     cassandra-migrate generate "My migration description"
 
     cassandra-migrate generate "My migration description" --python
+<<<<<<< HEAD
 
 TODO
 ----
 
 -  Ask for confirmation before applying dangerous commands
+=======
+
+>>>>>>> d1c38c6a1d72d8c1e493e56657cd02ada59e5687
 
 License (MIT)
 -------------

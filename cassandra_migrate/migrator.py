@@ -390,6 +390,8 @@ class Migrator(object):
     def _apply_cql_migration(self, version, migration):
         """
         Persist and apply a cql migration
+<<<<<<< HEAD
+=======
 
         First create an in-progress version entry, apply the script, then
         finalize the entry as succeeded, failed or skipped.
@@ -413,10 +415,37 @@ class Migrator(object):
     def _apply_python_migration(self, version, migration):
         """
         Persist and apply a python migration
+>>>>>>> d1c38c6a1d72d8c1e493e56657cd02ada59e5687
 
         First create an in-progress version entry, apply the script, then
         finalize the entry as succeeded, failed or skipped.
         """
+<<<<<<< HEAD
+
+        self.logger.info('Applying cql migration')
+
+        statements = CqlSplitter.split(migration.content)
+
+        try:
+            if statements:
+                self.logger.info('Executing migration -'
+                                 '{} CQL statement'.format(len(statements)))
+
+            for statement in statements:
+                self.session.execute(statement)
+        except Exception:
+            self.logger.exception('Failed to execute migration')
+            raise FailedMigration(version, migration.name)
+
+    def _apply_python_migration(self, version, migration):
+        """
+        Persist and apply a python migration
+
+        First create an in-progress version entry, apply the script, then
+        finalize the entry as succeeded, failed or skipped.
+        """
+=======
+>>>>>>> d1c38c6a1d72d8c1e493e56657cd02ada59e5687
         self.logger.info('Applying python script')
 
         try:
