@@ -254,7 +254,6 @@ Example:
 
     cassandra-migrate generate "My migration description" --python
 
-
 License (MIT)
 -------------
 
