@@ -401,8 +401,8 @@ class Migrator(object):
 
         try:
             if statements:
-                self.logger.info('Executing migration -'
-                                 '{} CQL statement'.format(len(statements)))
+                self.logger.info('Executing migration with '
+                                 '{} CQL statements'.format(len(statements)))
 
             for statement in statements:
                 self.session.execute(statement)
