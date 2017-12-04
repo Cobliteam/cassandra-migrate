@@ -90,12 +90,12 @@ class Migration(namedtuple('Migration',
             'keyspace': config.keyspace
         }
 
-        file_extension = ".cql"
-        file_content = text_cql_fmt.format(**format_args)
-
         if output == "python":
             file_extension = ".py"
             file_content = text_py_fmt.format(**format_args)
+        else:
+            file_extension = ".cql"
+            file_content = text_cql_fmt.format(**format_args)
 
         fname = fname_fmt.format(**format_args) + file_extension
         new_path = os.path.join(config.migrations_path, fname)
