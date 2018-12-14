@@ -1,6 +1,6 @@
 FROM python:3-alpine
 
-WORKDIR /usr/src/app
+WORKDIR /code
 
 ADD . /code/
 RUN pip install -r /code/requirements-dev.txt -e /code
