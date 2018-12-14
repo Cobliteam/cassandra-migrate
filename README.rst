@@ -255,6 +255,31 @@ Example:
     cassandra-migrate generate "My migration description" --python
 
 
+Development
+-----------
+
+For easier development Docker integrations has been provided. By default whole source code of package is in `/code`
+directory. To build new image using Docker just type in terminal:
+
+.. code:: bash
+
+    docker build . -t cassandra-migrate
+
+This will create image tagged as `cassandra-migrate`. From now on you can start default python interpreter just by
+running new container, package will be already available for Python.
+
+
+.. code:: bash
+
+    docker run -it cassandra-migrate
+
+To avoid building image each time you change in source code just mount main project folder as `/code` directory.
+
+.. code:: bash
+
+    docker run -it -v `pwd`:/code cassandra-migrate
+
+
 License (MIT)
 -------------
 
