@@ -279,6 +279,12 @@ To avoid building image each time you change in source code just mount main proj
 
     docker run -it -v `pwd`:/code cassandra-migrate
 
+You can also start unit tests just by running `pytest` command inside `cassandra-migrate` container
+
+.. code:: bash
+
+    docker run -it -v `pwd`:/code cassandra-migrate pytest
+
 
 License (MIT)
 -------------
