@@ -6,7 +6,7 @@ Simple Cassandra schema migration tool.
 Installation
 ------------
 
-Run ``pip install cassandra-migrate``, or ``python ./setup.py``
+Run ``pip install cassandra-migrate``, or ``python ./setup.py install``
 
 Reasoning
 ---------
