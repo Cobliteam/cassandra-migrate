@@ -158,6 +158,8 @@ Common parameters:
                         migrations are run against. This option must be used
                         in conjuction with the -k option. This option is
                         ignored unless the -s option is provided.
+  -v PROTOCOL_VERSION, --protocol-version PROTOCOL_VERSION
+                        Protocol version used to connect to Cassandra.
   -y, --assume-yes      Automatically answer "yes" for all questions
 
 migrate
