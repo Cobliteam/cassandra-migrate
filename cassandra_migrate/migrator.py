@@ -394,7 +394,7 @@ class Migrator(object):
 
         # Cassandra versions below 2.2 use protocol 3 and use `dateof` instead
         # of `toTimestamp`
-        if self.cluster.protocol_version == 3:
+        if self.cluster.protocol_version <= 3:
             statement = CREATE_DB_VERSION_PROTOCOL_3
         else:
             statement = CREATE_DB_VERSION
