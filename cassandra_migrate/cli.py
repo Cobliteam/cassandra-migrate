@@ -70,7 +70,7 @@ def main():
                         migrations are run against. This option must be used in
                         conjuction with the -k option. This option is ignored
                         unless the -s option is provided.""")
-    parser.add_argument('-v', '--protocol-version', type=int, default=None,
+    parser.add_argument('--protocol-version', type=int, default=None,
                         help='Protocol version used to connect to Cassandra.')
     parser.add_argument('-y', '--assume-yes', action='store_true',
                         help='Automatically answer "yes" for all questions')
