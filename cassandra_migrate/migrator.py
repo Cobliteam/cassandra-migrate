@@ -53,6 +53,12 @@ INSERT INTO "{keyspace}"."{table}"
 VALUES (%s, %s, %s, %s, %s, %s, toTimestamp(now())) IF NOT EXISTS
 """
 
+CREATE_DB_VERSION_PROTOCOL_3 = """
+INSERT INTO "{keyspace}"."{table}"
+(id, version, name, content, checksum, state, applied_at)
+VALUES (%s, %s, %s, %s, %s, %s, dateof(now())) IF NOT EXISTS
+"""
+
 FINALIZE_DB_VERSION = """
 UPDATE "{keyspace}"."{table}" SET state = %s WHERE id = %s IF state = %s
 """
@@ -385,8 +391,15 @@ class Migrator(object):
             version, migration))
 
         version_id = uuid.uuid4()
+
+        # Cassandra versions below 2.2 use protocol 3 and use `dateof` instead
+        # of `toTimestamp`
+        if self.cluster.protocol_version == 3:
+            statement = CREATE_DB_VERSION_PROTOCOL_3
+        else:
+            statement = CREATE_DB_VERSION
         result = self._execute(
-            self._q(CREATE_DB_VERSION),
+            self._q(statement),
             (version_id, version, migration.name, migration.content,
              bytearray(migration.checksum), Migration.State.IN_PROGRESS))
 
