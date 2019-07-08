@@ -50,7 +50,7 @@ DROP KEYSPACE IF EXISTS "{keyspace}";
 CREATE_DB_VERSION = """
 INSERT INTO "{keyspace}"."{table}"
 (id, version, name, content, checksum, state, applied_at)
-VALUES (%s, %s, %s, %s, %s, %s, toTimestamp(now())) IF NOT EXISTS
+VALUES (%s, %s, %s, %s, %s, %s, toTimestamp(now()))
 """
 
 FINALIZE_DB_VERSION = """
