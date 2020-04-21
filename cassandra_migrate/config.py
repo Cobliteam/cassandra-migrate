@@ -2,6 +2,8 @@
 
 from __future__ import (absolute_import, division,
                         print_function, unicode_literals)
+
+import warnings
 from builtins import str, open
 
 import os
@@ -114,6 +116,13 @@ class MigrationConfig(object):
     def load(cls, path):
         """Load a migration config from a file, using it's dir. as base path"""
         with open(path, 'r', encoding='utf-8') as f:
-            config = yaml.load(f)
+            with warnings.catch_warnings():
+                warnings.filterwarnings('error')
+                try:
+                    # pyaml < 5.0
+                    config = yaml.load(f)
+                except yaml.YAMLLoadWarning as e:
+                    # pyaml > 5.0
+                    config = yaml.load(f, Loader=yaml.FullLoader)
 
         return cls(config, os.path.dirname(path))
