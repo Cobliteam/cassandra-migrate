@@ -1,6 +1,6 @@
 from setuptools import setup
 
-VERSION = '0.3.3'
+VERSION = '0.3.4'
 
 setup(name='cassandra-migrate',
       packages=['cassandra_migrate'],
