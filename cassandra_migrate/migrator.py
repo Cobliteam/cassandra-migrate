@@ -110,13 +110,14 @@ class Migrator(object):
     - user, password: authentication options. May be None to not use it.
     - hosts: comma-separated list of contact points
     - port: connection port
+    - **args: others arguments for connection
     """
 
     logger = logging.getLogger("Migrator")
 
     def __init__(self, config, profile='dev', hosts=['127.0.0.1'], port=9042,
                  user=None, password=None, host_cert_path=None,
-                 client_key_path=None, client_cert_path=None):
+                 client_key_path=None, client_cert_path=None, **args):
         self.config = config
 
         try:
@@ -144,7 +145,8 @@ class Migrator(object):
             max_schema_agreement_wait=300,
             control_connection_timeout=10,
             connect_timeout=30,
-            ssl_options=ssl_options)
+            ssl_options=ssl_options,
+            **args)
 
         self._session = None
 
@@ -175,10 +177,7 @@ class Migrator(object):
 
     def _init_session(self):
         if not self._session:
-            s = self._session = self.cluster.connect()
-            s.default_consistency_level = ConsistencyLevel.ALL
-            s.default_serial_consistency_level = ConsistencyLevel.SERIAL
-            s.default_timeout = 120
+            self._session = self.cluster.connect()
 
     @property
     def session(self):

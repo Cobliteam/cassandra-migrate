@@ -8,10 +8,11 @@ import os
 import logging
 import argparse
 import subprocess
-
+from ssl import PROTOCOL_TLSv1, SSLContext
+from cassandra import ConsistencyLevel
 from cassandra_migrate import (Migrator, Migration, MigrationConfig,
                                MigrationError)
-
+from cassandra.cluster import ExecutionProfile, EXEC_PROFILE_DEFAULT
 
 def open_file(filename):
     if sys.platform == 'win32':
@@ -72,6 +73,9 @@ def main():
                         unless the -s option is provided.""")
     parser.add_argument('-y', '--assume-yes', action='store_true',
                         help='Automatically answer "yes" for all questions')
+    parser.add_argument('-ssl', '--use-ssl', action='store_true',
+                        help='Use ssl connection')
+
 
     cmds = parser.add_subparsers(help='sub-command help')
 
@@ -134,12 +138,20 @@ def main():
 
         print(os.path.basename(new_path))
     else:
+        args = {}
+        if opts.use_ssl:
+            ssl_context = SSLContext(PROTOCOL_TLSv1)
+            profile = ExecutionProfile(
+                consistency_level=ConsistencyLevel.LOCAL_QUORUM,
+                serial_consistency_level=ConsistencyLevel.SERIAL,
+            )
+            args.update({'ssl_context': ssl_context, 'execution_profiles': {EXEC_PROFILE_DEFAULT: profile}})
         with Migrator(config=config, profile=opts.profile,
                       hosts=opts.hosts.split(','), port=opts.port,
                       user=opts.user, password=opts.password,
                       host_cert_path=opts.ssl_cert,
                       client_key_path=opts.ssl_client_private_key,
-                      client_cert_path=opts.ssl_client_cert) as migrator:
+                      client_cert_path=opts.ssl_client_cert,  **args) as migrator:
             cmd_method = getattr(migrator, opts.action)
             if not callable(cmd_method):
                 print('Error: invalid command', file=sys.stderr)
