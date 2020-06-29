@@ -142,7 +142,7 @@ def main():
         if opts.use_ssl:
             ssl_context = SSLContext(PROTOCOL_TLSv1)
             profile = ExecutionProfile(
-                consistency_level=ConsistencyLevel.LOCAL_QUORUM,
+                consistency_level=ConsistencyLevel.ALL,
                 serial_consistency_level=ConsistencyLevel.SERIAL,
             )
             args.update({'ssl_context': ssl_context, 'execution_profiles': {EXEC_PROFILE_DEFAULT: profile}})
