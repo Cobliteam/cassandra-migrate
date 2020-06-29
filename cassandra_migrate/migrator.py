@@ -10,6 +10,7 @@ import uuid
 import codecs
 import sys
 import os
+import time
 import importlib
 from functools import wraps
 from future.moves.itertools import zip_longest
@@ -506,6 +507,8 @@ class Migrator(object):
                 break
 
             self._apply_migration(version, migration, skip=skip)
+            print("Wait 60 seconds..")
+            time.sleep(60)
 
         self.cluster.refresh_schema_metadata()
 
