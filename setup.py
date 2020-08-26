@@ -15,7 +15,7 @@ setup(name='cassandra-migrate',
       install_requires=[
           'cassandra-driver',
           'future',
-          'PyYAML<5.0',
+          'PyYAML>=5.3.1',
           'arrow',
           'tabulate'
       ],
