@@ -42,15 +42,17 @@ def main():
                         help='Connection username')
     parser.add_argument('--user-environment-variable-name',
                         help="""
-                        Name of an environment variable which contains the username.
-                        Is overridden by --user if both are passed.
+                        Name of an environment variable which contains the
+                        username.  Is overridden by --user if both are
+                        passed.
                         """)
     parser.add_argument('-P', '--password',
                         help='Connection password')
     parser.add_argument('--password-environment-variable-name',
                         help="""
-                        Name of an environment variable that contains the password.
-                        Is overridden by --password if both are passed.
+                        Name of an environment variable that contains the
+                        password.  Is overridden by --password if both are
+                        passed.
                         """)
     parser.add_argument('-c', '--config-file', default='cassandra-migrate.yml',
                         help='Path to configuration file')
