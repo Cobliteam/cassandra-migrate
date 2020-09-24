@@ -18,6 +18,7 @@ from future.moves.itertools import zip_longest
 import arrow
 from tabulate import tabulate
 from cassandra import ConsistencyLevel
+
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
 from cassandra_migrate import (Migration, FailedMigration, InconsistentState,

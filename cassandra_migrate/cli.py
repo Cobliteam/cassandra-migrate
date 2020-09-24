@@ -138,13 +138,13 @@ def main():
 
         print(os.path.basename(new_path))
     else:
-        args = {}
+        profile = ExecutionProfile(
+            consistency_level=ConsistencyLevel.ALL,
+        )
+        args = {'execution_profiles': {EXEC_PROFILE_DEFAULT: profile}}
         if opts.use_ssl:
             ssl_context = SSLContext(PROTOCOL_TLSv1)
-            profile = ExecutionProfile(
-                consistency_level=ConsistencyLevel.ALL,
-            )
-            args.update({'ssl_context': ssl_context, 'execution_profiles': {EXEC_PROFILE_DEFAULT: profile}})
+            args.update({'ssl_context': ssl_context})
         with Migrator(config=config, profile=opts.profile,
                       hosts=opts.hosts.split(','), port=opts.port,
                       user=opts.user, password=opts.password,
