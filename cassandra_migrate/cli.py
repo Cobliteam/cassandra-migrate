@@ -46,6 +46,23 @@ def main():
                         help='Path to configuration file')
     parser.add_argument('-m', '--profile', default='dev',
                         help='Name of keyspace profile to use')
+    parser.add_argument('-l', '--load-balancing-policy',
+                        choices=('round-robin', 'dc-aware-round-robin'),
+                        default='round-robin',
+                        help="""
+                        Cassandra connection load balancing policy. if
+                        dc-aware-round-robin is passed, you must set
+                        --local-dc. """)
+    parser.add_argument('-L', '--local-dc',
+                        help='Local datacenter name')
+    parser.add_argument('--used-hosts-per-remote-dc',
+                        type=int,
+                        default=0,
+                        help="""
+                        If --load-balancing-policy is dc-aware-round-robin,
+                        this controls how many hosts to use from non-local
+                        datacenters.  Only set this if you know what it
+                        means.""")
     parser.add_argument('-s', '--ssl-cert', default=None,
                         help="""
                         File path of .pem or .crt containing certificate of the
@@ -134,12 +151,23 @@ def main():
 
         print(os.path.basename(new_path))
     else:
-        with Migrator(config=config, profile=opts.profile,
-                      hosts=opts.hosts.split(','), port=opts.port,
-                      user=opts.user, password=opts.password,
-                      host_cert_path=opts.ssl_cert,
-                      client_key_path=opts.ssl_client_private_key,
-                      client_cert_path=opts.ssl_client_cert) as migrator:
+        if (
+            opts.load_balancing_policy == 'dc-aware-round-robin' and
+            not opts.local_dc
+        ):
+            parser.error('must pass --local-dc when setting --load-balancing-'
+                         'policy to dc-aware-round-robin')
+        with Migrator(
+            config=config, profile=opts.profile,
+            hosts=opts.hosts.split(','), port=opts.port,
+            user=opts.user, password=opts.password,
+            host_cert_path=opts.ssl_cert,
+            client_key_path=opts.ssl_client_private_key,
+            client_cert_path=opts.ssl_client_cert,
+            load_balancing_policy=opts.load_balancing_policy,
+            local_dc=opts.local_dc,
+            used_hosts_per_remote_dc=opts.used_hosts_per_remote_dc,
+        ) as migrator:
             cmd_method = getattr(migrator, opts.action)
             if not callable(cmd_method):
                 print('Error: invalid command', file=sys.stderr)
