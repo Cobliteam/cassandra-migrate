@@ -144,7 +144,7 @@ class Migrator(object):
             contact_points=hosts,
             port=port,
             auth_provider=auth_provider,
-            max_schema_agreement_wait=300,
+            max_schema_agreement_wait=3000,
             control_connection_timeout=60,
             connect_timeout=90,
             ssl_options=ssl_options,
