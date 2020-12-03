@@ -145,8 +145,8 @@ class Migrator(object):
             port=port,
             auth_provider=auth_provider,
             max_schema_agreement_wait=300,
-            control_connection_timeout=10,
-            connect_timeout=30,
+            control_connection_timeout=60,
+            connect_timeout=90,
             ssl_options=ssl_options,
             **args)
 
