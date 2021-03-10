@@ -40,8 +40,20 @@ def main():
                         help='Connection port')
     parser.add_argument('-u', '--user',
                         help='Connection username')
+    parser.add_argument('--user-environment-variable-name',
+                        help="""
+                        Name of an environment variable which contains the
+                        username.  Is overridden by --user if both are
+                        passed.
+                        """)
     parser.add_argument('-P', '--password',
                         help='Connection password')
+    parser.add_argument('--password-environment-variable-name',
+                        help="""
+                        Name of an environment variable that contains the
+                        password.  Is overridden by --password if both are
+                        passed.
+                        """)
     parser.add_argument('-c', '--config-file', default='cassandra-migrate.yml',
                         help='Path to configuration file')
     parser.add_argument('-m', '--profile', default='dev',
@@ -134,9 +146,21 @@ def main():
 
         print(os.path.basename(new_path))
     else:
+        if opts.password:
+            password = opts.password
+        elif opts.password_environment_variable_name:
+            password = os.environ[opts.password_environment_variable_name]
+        else:
+            password = None
+        if opts.user:
+            user = opts.user
+        elif opts.user_environment_variable_name:
+            user = os.environ[opts.user_environment_variable_name]
+        else:
+            user = None
         with Migrator(config=config, profile=opts.profile,
                       hosts=opts.hosts.split(','), port=opts.port,
-                      user=opts.user, password=opts.password,
+                      user=user, password=password,
                       host_cert_path=opts.ssl_cert,
                       client_key_path=opts.ssl_client_private_key,
                       client_cert_path=opts.ssl_client_cert) as migrator:
