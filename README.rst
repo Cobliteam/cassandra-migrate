@@ -1,3 +1,6 @@
+[![Cobliteam](https://circleci.com/gh/Cobliteam/cassandra-migrate/tree/master.svg?style=svg)](https://app.circleci.com/pipelines/github/Cobliteam/cassandra-migrate)
+
+
 Cassandra-migrate
 =================
 
