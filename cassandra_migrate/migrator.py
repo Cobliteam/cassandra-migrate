@@ -21,6 +21,7 @@ from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
 from cassandra_migrate import (Migration, FailedMigration, InconsistentState,
                                UnknownMigration, ConcurrentMigration)
+from cassandra.policies import (RoundRobinPolicy, DCAwareRoundRobinPolicy)
 from cassandra_migrate.cql import CqlSplitter
 
 
@@ -110,13 +111,17 @@ class Migrator(object):
     - user, password: authentication options. May be None to not use it.
     - hosts: comma-separated list of contact points
     - port: connection port
+    - load_balancing_policy: "round-robin" or "dc-aware-round-robin"
+    - local_dc: name of local datacenter
     """
 
     logger = logging.getLogger("Migrator")
 
     def __init__(self, config, profile='dev', hosts=['127.0.0.1'], port=9042,
                  user=None, password=None, host_cert_path=None,
-                 client_key_path=None, client_cert_path=None):
+                 client_key_path=None, client_cert_path=None,
+                 load_balancing_policy='round-robin',
+                 local_dc=None):
         self.config = config
 
         try:
@@ -137,10 +142,18 @@ class Migrator(object):
         else:
             ssl_options = None
 
+        if load_balancing_policy == 'round_robin':
+            cluster_load_balancing_policy = RoundRobinPolicy()
+        elif load_balancing_policy == 'dc-aware-round-robin':
+            cluster_load_balancing_policy = DCAwareRoundRobinPolicy(
+                local_dc=local_dc
+            )
+
         self.cluster = Cluster(
             contact_points=hosts,
             port=port,
             auth_provider=auth_provider,
+            load_balancing_policy=cluster_load_balancing_policy,
             max_schema_agreement_wait=300,
             control_connection_timeout=10,
             connect_timeout=30,
