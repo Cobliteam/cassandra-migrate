@@ -1,4 +1,11 @@
-[![Cobliteam](https://circleci.com/gh/Cobliteam/cassandra-migrate/tree/master.svg?style=svg)](https://app.circleci.com/pipelines/github/Cobliteam/cassandra-migrate)
++---------------+---------------------+
+| BRANCH CI     | STATUS              |
++===============+=====================+
+| master        | |Master Badge|      |
++---------------+---------------------+
+
+.. |Master Badge| image:: https://circleci.com/gh/Cobliteam/cassandra-migrate/tree/master.svg?style=svg&circle-token=cd6c01feb75b2abc6d4123426170114452dbb3c0
+    :target:https://app.circleci.com/pipelines/github/Cobliteam/cassandra-migrate
 
 
 Cassandra-migrate
