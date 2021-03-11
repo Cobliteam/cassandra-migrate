@@ -2,6 +2,19 @@ from setuptools import setup
 
 VERSION = '0.3.3'
 
+install_requires = [
+    "arrow==0.17.0",
+    "cassandra-driver==3.24.0",
+    "cassandra-migrate==0.3.3",
+    "click==7.1.2",
+    "future==0.18.2",
+    "geomet==0.2.1.post1",
+    "python-dateutil==2.8.1",
+    "PyYAML==5.3.1",
+    "six==1.15.0",
+    "tabulate==0.8.9",
+    "typing-extensions==3.7.4.3"]
+
 setup(name='cassandra-migrate',
       packages=['cassandra_migrate'],
       version=VERSION,
@@ -12,12 +25,6 @@ setup(name='cassandra-migrate',
       author='Daniel Miranda',
       author_email='daniel@cobli.co',
       license='MIT',
-      install_requires=[
-          'cassandra-driver',
-          'future',
-          'PyYAML>=5.3.1',
-          'arrow',
-          'tabulate'
-      ],
+      install_requires=install_requires,
       scripts=['bin/cassandra-migrate'],
       keywords='cassandra schema migration')
