@@ -1,0 +1,18 @@
+version: 2.1
+
+jobs:
+  test:
+    docker:
+      - image: themattrix/tox
+    steps:
+      - checkout
+      - run: pip install --upgrade pip
+      - run: pip install tox
+      - run:
+          command: tox
+          name: Test
+
+workflows:
+  main:
+    jobs:
+      - test
