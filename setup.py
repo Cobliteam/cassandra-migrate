@@ -10,7 +10,7 @@ install_requires = [
     "future==0.18.2",
     "geomet==0.2.1.post1",
     "python-dateutil==2.8.1",
-    "PyYAML==5.3.1",
+    "PyYAML==5.4",
     "six==1.15.0",
     "tabulate==0.8.9",
     "typing-extensions==3.7.4.3"]
