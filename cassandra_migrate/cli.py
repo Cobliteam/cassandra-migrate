@@ -8,7 +8,7 @@ import os
 import logging
 import argparse
 import subprocess
-from ssl import PROTOCOL_TLSv1, SSLContext
+from ssl import PROTOCOL_TLSv1_2, SSLContext
 from cassandra import ConsistencyLevel
 from cassandra_migrate import (Migrator, Migration, MigrationConfig,
                                MigrationError)
@@ -143,7 +143,7 @@ def main():
         )
         args = {'execution_profiles': {EXEC_PROFILE_DEFAULT: profile}}
         if opts.use_ssl:
-            ssl_context = SSLContext(PROTOCOL_TLSv1)
+            ssl_context = SSLContext(PROTOCOL_TLSv1_2)
             args.update({'ssl_context': ssl_context})
         with Migrator(config=config, profile=opts.profile,
                       hosts=opts.hosts.split(','), port=opts.port,
