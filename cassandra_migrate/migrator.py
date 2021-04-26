@@ -113,6 +113,7 @@ class Migrator(object):
     - port: connection port
     - load_balancing_policy: "round-robin" or "dc-aware-round-robin"
     - local_dc: name of local datacenter
+    - used_hosts_per_remote_dc: number of remote hosts to use
     """
 
     logger = logging.getLogger("Migrator")
@@ -121,7 +122,7 @@ class Migrator(object):
                  user=None, password=None, host_cert_path=None,
                  client_key_path=None, client_cert_path=None,
                  load_balancing_policy='round-robin',
-                 local_dc=None):
+                 local_dc=None, used_hosts_per_remote_dc=0):
         self.config = config
 
         try:
@@ -142,11 +143,12 @@ class Migrator(object):
         else:
             ssl_options = None
 
-        if load_balancing_policy == 'round_robin':
+        if load_balancing_policy == 'round-robin':
             cluster_load_balancing_policy = RoundRobinPolicy()
         elif load_balancing_policy == 'dc-aware-round-robin':
             cluster_load_balancing_policy = DCAwareRoundRobinPolicy(
-                local_dc=local_dc
+                local_dc=local_dc,
+                use_hosts_per_remote_dc=used_hosts_per_remote_dc,
             )
 
         self.cluster = Cluster(
