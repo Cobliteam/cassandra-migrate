@@ -142,7 +142,7 @@ class Migrator(object):
             port=port,
             auth_provider=auth_provider,
             ssl_options=ssl_options,
-            **config.cluster_connection_properties)
+            **config.config_data.cluster_connection_properties)
 
         self._session = None
 
