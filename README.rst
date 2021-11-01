@@ -265,6 +265,37 @@ Example:
     cassandra-migrate generate "My migration description" --python
 
 
+Development
+-----------
+
+For easier development Docker integrations has been provided. By default whole source code of package is in `/code`
+directory. To build new image using Docker just type in terminal:
+
+.. code:: bash
+
+    docker build . -t cassandra-migrate
+
+This will create image tagged as `cassandra-migrate`. From now on you can start default python interpreter just by
+running new container, package will be already available for Python.
+
+
+.. code:: bash
+
+    docker run -it cassandra-migrate
+
+To avoid building image each time you change in source code just mount main project folder as `/code` directory.
+
+.. code:: bash
+
+    docker run -it -v `pwd`:/code cassandra-migrate
+
+You can also start unit tests just by running `pytest` command inside `cassandra-migrate` container
+
+.. code:: bash
+
+    docker run -it -v `pwd`:/code cassandra-migrate pytest
+
+
 License (MIT)
 -------------
 
@@ -277,3 +308,11 @@ License (MIT)
     The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+Contributors
+------------
+
+List of open-source contributors who helped in developing this tool:
+
+- Adam Strojek (<https://github.com/AdamStrojek/>)
