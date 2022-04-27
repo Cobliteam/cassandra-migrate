@@ -12,7 +12,7 @@ install_requires = [
     "PyYAML>=5,<7",
     "six==1.*",
     "tabulate==0.8.9",
-    "typing-extensions==3.*"]
+    "typing-extensions>=3,<5"]
 
 setup(name='cassandra-migrate',
       packages=['cassandra_migrate'],
