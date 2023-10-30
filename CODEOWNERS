@@ -1,0 +1,23 @@
+# This is a comment.
+# Each line is a file pattern followed by one or more owners.
+
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence,
+# review when someone opens a pull request.
+* @aplazame/squad_app-backend
+* @aplazame/squad_checkout-backend
+* @aplazame/squad_core-backend
+* @aplazame/squad_dashboards-backend
+# owner(s) will be requested for a review.
+Jenkinsfile @aplazame/squad_devops-reviewers
+DockerFile  @aplazame/squad_devops-reviewers
+CODEOWNERS  @aplazame/squad_devops-reviewers
+jenkins/ @aplazame/squad_devops-reviewers
+docker/DockerFile   @aplazame/squad_devops-reviewers
+Makefile    @aplazame/squad_devops-reviewers
+makefile    @aplazame/squad_devops-reviewers
+node.yaml   @aplazame/squad_devops-reviewers
+deploy.yaml @aplazame/squad_devops-reviewers
+build_dependencies.yaml @aplazame/squad_devops-reviewers
+build.yaml  @aplazame/squad_devops-reviewers
+Dockerfile  @aplazame/squad_devops-reviewers
