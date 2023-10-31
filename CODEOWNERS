@@ -4,10 +4,7 @@
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence,
 # review when someone opens a pull request.
-* @aplazame/squad_app-backend
-* @aplazame/squad_checkout-backend
-* @aplazame/squad_core-backend
-* @aplazame/squad_dashboards-backend
+* @aplazame/squad_app-backend @aplazame/squad_checkout-backend @aplazame/squad_core-backend @aplazame/squad_dashboards-backend
 # owner(s) will be requested for a review.
 Jenkinsfile @aplazame/squad_devops-reviewers
 DockerFile  @aplazame/squad_devops-reviewers
