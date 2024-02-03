@@ -116,7 +116,8 @@ class Migrator(object):
 
     def __init__(self, config, profile='dev', hosts=['127.0.0.1'], port=9042,
                  user=None, password=None, host_cert_path=None,
-                 client_key_path=None, client_cert_path=None):
+                 client_key_path=None, client_cert_path=None,
+                 init_file=None):
         self.config = config
 
         try:
@@ -137,7 +138,8 @@ class Migrator(object):
         else:
             ssl_options = None
 
-        self.cluster = Cluster(
+        create_cluster = init_file.create_cluster if hasattr(init_file, 'create_cluster') else lambda **kwargs: Cluster(**kwargs)
+        self.cluster = create_cluster(
             contact_points=hosts,
             port=port,
             auth_provider=auth_provider,
