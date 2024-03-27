@@ -1,6 +1,6 @@
 from setuptools import setup
 
-VERSION = '0.3.5'
+VERSION = '0.3.6'
 
 install_requires = [
     "arrow==0.17.0",
@@ -10,7 +10,7 @@ install_requires = [
     "future==0.18.2",
     "geomet==0.2.1.post1",
     "python-dateutil==2.8.1",
-    "PyYAML==5.*",
+    "PyYAML==6.*",
     "six==1.15.0",
     "tabulate==0.8.9",
     "typing-extensions==3.7.4.3"]
