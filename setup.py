@@ -7,7 +7,7 @@ install_requires = [
     "cassandra-driver==3.24.0",
     "cassandra-migrate==0.3.5",
     "click==7.1.2",
-    "future==0.18.2",
+    "future==1.0.0",
     "geomet==0.2.1.post1",
     "python-dateutil==2.8.1",
     "PyYAML==5.*",
