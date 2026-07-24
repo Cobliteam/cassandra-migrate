@@ -19,6 +19,7 @@ from tabulate import tabulate
 from cassandra import ConsistencyLevel
 from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
+from cassandra.metadata import maybe_escape_name
 from cassandra_migrate import (Migration, FailedMigration, InconsistentState,
                                UnknownMigration, ConcurrentMigration)
 from cassandra_migrate.cql import CqlSplitter
@@ -500,7 +501,7 @@ class Migrator(object):
             # Set default keyspace so migrations don't need to refer to it
             # manually
             # Fixes https://github.com/Cobliteam/cassandra-migrate/issues/5
-            self.session.execute('USE {};'.format(self.config.keyspace))
+            self.session.execute('USE {};'.format(maybe_escape_name(self.config.keyspace)))
 
         for version, migration in migrations:
             if version > target_version:
