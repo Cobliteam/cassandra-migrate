@@ -70,6 +70,9 @@ def main():
                         migrations are run against. This option must be used in
                         conjuction with the -k option. This option is ignored
                         unless the -s option is provided.""")
+    parser.add_argument('--protocol-version', type=int, default=None,
+                        choices=range(1, 6),
+                        help='Protocol version used to connect to Cassandra.')
     parser.add_argument('-y', '--assume-yes', action='store_true',
                         help='Automatically answer "yes" for all questions')
 
@@ -139,7 +142,8 @@ def main():
                       user=opts.user, password=opts.password,
                       host_cert_path=opts.ssl_cert,
                       client_key_path=opts.ssl_client_private_key,
-                      client_cert_path=opts.ssl_client_cert) as migrator:
+                      client_cert_path=opts.ssl_client_cert,
+                      protocol_version=opts.protocol_version) as migrator:
             cmd_method = getattr(migrator, opts.action)
             if not callable(cmd_method):
                 print('Error: invalid command', file=sys.stderr)
