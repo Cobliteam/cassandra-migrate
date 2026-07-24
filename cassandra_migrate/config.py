@@ -76,6 +76,8 @@ class MigrationConfig(object):
 
         self.keyspace = _assert_type(data, 'keyspace', str)
 
+        self.cluster_connection_properties = _assert_type(data, 'cluster_connection_properties', dict)
+
         self.profiles = self.DEFAULT_PROFILES.copy()
         profiles = _assert_type(data, 'profiles', dict, default={})
         for name, profile in profiles.items():
