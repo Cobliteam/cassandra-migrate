@@ -8,6 +8,7 @@ import os
 import logging
 import argparse
 import subprocess
+import importlib.util
 
 from cassandra_migrate import (Migrator, Migration, MigrationConfig,
                                MigrationError)
@@ -46,6 +47,9 @@ def main():
                         help='Path to configuration file')
     parser.add_argument('-m', '--profile', default='dev',
                         help='Name of keyspace profile to use')
+    parser.add_argument('-i', '--init-file', default=None,
+                        help="""
+                        """)
     parser.add_argument('-s', '--ssl-cert', default=None,
                         help="""
                         File path of .pem or .crt containing certificate of the
@@ -125,6 +129,14 @@ def main():
     opts.cli_mode = sys.stdin.isatty()
     config = MigrationConfig.load(opts.config_file)
 
+    if opts.init_file is not None or os.path.isfile('cassandra-migrate.init.py'):
+        init_file_spec = importlib.util.spec_from_file_location('init_file', opts.init_file or 'cassandra-migrate.init.py')
+        init_file = importlib.util.module_from_spec(init_file_spec)
+        sys.modules['init_file'] = init_file
+        init_file_spec.loader.exec_module(init_file)
+    else:
+        init_file = None
+
     if opts.action == 'generate':
         new_path = Migration.generate(config=config,
                                       description=opts.description,
@@ -139,7 +151,8 @@ def main():
                       user=opts.user, password=opts.password,
                       host_cert_path=opts.ssl_cert,
                       client_key_path=opts.ssl_client_private_key,
-                      client_cert_path=opts.ssl_client_cert) as migrator:
+                      client_cert_path=opts.ssl_client_cert,
+                      init_file=init_file) as migrator:
             cmd_method = getattr(migrator, opts.action)
             if not callable(cmd_method):
                 print('Error: invalid command', file=sys.stderr)
